@@ -26,9 +26,26 @@ Python3.0 + PYQT
 
 #### 使用说明
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+VNTrader是VNPY官方 http://www.vnpy.cn 推出的一款国内期货量化交易开源软件，
+主要支持CTP接口，支持国内149家期货公司程序化交易，实现程序化交易是免费的。
+支持股指期货、商品期货、股指期权、商品期权，
+支持中国8大合规交易所中的5所，包括上海期货交易所，大连期货交易所、
+郑州期货交易所、中金所、能源所。
+
+目录说明：
+strategy  策略存放目录
+temp CTP接口产生的临时流文件存放目录
+setting.ini 账户和服务器配置文件
+
+thostmduserapi_se.dll  CTP接口原生行情接口
+thosttraderapi_se.dll    CTP接口原生交易接口
+vnctpmd.dll  CTP接口原生交易接口的代理库，用于和ctypes方式封装的CTPMarket.py 引用
+vnctptd.dll    CTP接口原生交易接口的代理库，用于和ctypes方式封装的CTPTrader 引用
+CTPMarket.py           Python ctypes 方式封装
+CTPTrader.py            Python ctypes 方式封装
+CTPMarketType.py    Python类型定义
+CTPTraderType.py     Python类型定义
+VNTrader.py  基于PyQT5的GUI程序
 
 #### 参与贡献
 
