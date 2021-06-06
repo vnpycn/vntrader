@@ -11,9 +11,14 @@ VNPY知乎专栏 https://www.zhihu.com/org/vnpy/zvideos/
 #### 软件架构
 软件架构说明
 Python3.0 + PYQT
-![image](https://gitee.com/vnpycn/vntrader/blob/master/pic/vnpy.png)
+python下载
+https://www.python.org/
 
+Pycharm下载
+https://www.jetbrains.com/pycharm/
+默认英文版，可安装中文版本插件
 
+注意：Python、IDE、VNTrader DLL模块必须一致，必须同时是32位或同时是64位。
 
 支持Windows平台
 
