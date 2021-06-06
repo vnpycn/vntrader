@@ -2,10 +2,13 @@
 
 #### 介绍
 VNTrader客户端开源代码
+VNTrader客户端开源代码 VNTrader是VNPY官方提供的CTP开源项目客户端源代码，支持国内149家期货公司的CTP接入，支持股指期货，股指期权、商品期货、商品期权的程序化交易和量化交易的仿真回测。 VNPY官方网站 http://www.vnpy.cn VNPY知乎专栏 https://www.zhihu.com/org/vnpy/zvideos/
 
 #### 软件架构
 软件架构说明
+Python3.0 + PYQT
 
+支持Windows平台
 
 #### 安装教程
 
