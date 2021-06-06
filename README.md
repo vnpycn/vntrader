@@ -8,13 +8,16 @@ VNPY知乎专栏 https://www.zhihu.com/org/vnpy/zvideos/
 
 
 
-
+![Image text](https://gitee.com/vnpycn/vntrader/blob/master/pic/vnpy.png)
 
 
 #### 软件架构
 软件架构说明
 Python3.0 + PYQT
 ![image](https://gitee.com/vnpycn/vntrader/blob/master/pic/vnpy.png)
+
+
+
 支持Windows平台
 
 #### 安装教程
