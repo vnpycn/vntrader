@@ -13,6 +13,11 @@ VNTrader客户端开源代码 VNTrader是VNPY官方提供的CTP开源项目客�
 
 全新架构，性能再次升级，python的便捷,C++性能加持，比老版本更好用，性能提升300%以上，全新系统命名未VNTrader，属于VNPY官方发布的重点全新架构的产品。
 
+
+https://gitee.com/vnpycn/vntrader
+最近会有大的更新，VNTrader的底层C++代码很快会开放出来，目前开放Python部份，而且功能在整理，这个是一个有具大性能提升大版本
+https://www.zhihu.com/org/vnpy/zvideos
+
 VNPY官方网站 http://www.vnpy.cn 
 
 VNPY知乎专栏 https://www.zhihu.com/org/vnpy/zvideos/
