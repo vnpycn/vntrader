@@ -5,10 +5,8 @@ import sys
 from PyQt5 import QtWidgets, QtCore
 # make the example runnable without the need to install
 from os.path import abspath, dirname
-
 sys.path.insert(0, abspath(dirname(abspath(__file__)) + '/..'))
 import multiprocessing
-
 curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0]
 sys.path.append(os.path.split(rootPath)[0])
@@ -17,127 +15,169 @@ import qdarkstyle
 import ui.example_pyqt5_ui as example_ui
 from PyQt5.QtGui import QIcon
 
-# 导入CTP行情库
+# CTP行情库
 from CTPMarket import *
-# 导入CTP交易库
+# CTP交易库
 from CTPTrader import *
-
 # 导入时间库
 import time
 from threading import Thread
 
 global ui
 ui = example_ui.Ui_MainWindow()
+
+# MyCTPTrade类继承自CTPTrader类
 class MyCTPTrade(CTPTrader):
     # 登录回调
-    def OnRspUserLogin(self, a):
+    def OnRspUserLogin(self,a):
         # print(a.contents.a1, a.contents.a2)
         print(u'td OnRspUserLogin(Python)')
         #self.SubscribeMarketData('rb2110')
-        log_todaytd('OnRspUserLogin', ui)
+        log_todaytd('OnRspUserLogin')
 
     # 退出登录回调
     def OnRspUserLogout(self, a):
         print(a.contents.a1, a.contents.a2)
         print(u'td OnRspUserLogout(Python)')
-        log_todaytd('OnRspUserLogout', ui)
+        log_todaytd('OnRspUserLogout')
 
     # 建立连接回调
     def OnFrontConnected(self):
         print("td OnFrontConnected(Python)")
-        log_todaytd('OnFrontConnected', ui)
+        log_todaytd('OnFrontConnected')
 
     # 断开连接回调
     def OnFrontDisconnected(self, a):
         print("td OnFrontDisconnected(Python)")
-        log_todaytd('OnFrontDisconnected', ui)
-
+        log_todaytd('OnFrontDisconnected')
 
 # MyCTPMarket类继承自CTPMarket类
-
 class MyCTPMarket(CTPMarket):
     # 行情回调
     def OnRtnDepthMarketData(self, a):
         print(a.InstrumentID)
         print(u'md OnRtnDepthMarketData(Python)')
-        log_todaymd('OnRtnDepthMarketData', ui)
+        log_todaymd('OnRtnDepthMarketData')
 
     # 合约订阅回调
     def OnRspSubMarketData(self, a):
         print(a.contents.a1, a.contents.a2)
         print(u'md OnRspSubMarketData(Python)')
-        log_todaymd('OnRspSubMarketData', ui)
+        log_todaymd('OnRspSubMarketData')
 
     # 登录回调
-    def OnRspUserLogin(self, ui):
+    def OnRspUserLogin(self,a):
         # print(a.contents.a1, a.contents.a2)
         print(u'md OnRspUserLogin(Python)')
-        log_todaymd('OnRspUserLogin', ui)
+        log_todaymd('OnRspUserLogin')
         #self.SubscribeMarketData('rb2110')
 
     # 退出登录回调
     def OnRspUserLogout(self, a):
         print(a.contents.a1, a.contents.a2)
         print(u'md OnRspUserLogout(Python)')
-        log_todaymd('OnRspUserLogout', ui)
+        log_todaymd('OnRspUserLogout')
     # 建立连接回调
     def OnFrontConnected(self):
         print("md OnFrontConnected(Python2)")
-        log_todaymd('OnFrontConnected',ui)
+        log_todaymd('OnFrontConnected')
 
     # 断开连接回调
     def OnFrontDisconnected(self, a):
         print("md OnFrontDisconnected(Python)")
-        log_todaymd('OnFrontDisconnected',ui)
+        log_todaymd('OnFrontDisconnected')
 
-class RegThreadOnFrontConnected(Thread):
+
+class RegTdThreadOnFrontConnected(Thread):
     def __init__(self, name, point):
         super().__init__()
         self.name = name
         self.point = point
     def run(self):  # 一定要叫这个名字，不能是别的
-        print('%s is running\n' % self.name)
+        print('td %s is running\n' % self.name)
         self.point.VNRegOnFrontConnected()
 
-class RegThreadOnFrontDisconnected(Thread):
+class RegTdThreadOnFrontDisconnected(Thread):
     def __init__(self, name, point):
         super().__init__()
         self.name = name
         self.point=point
     def run(self):  # 一定要叫这个名字，不能是别的
-        print('%s is running\n' % self.name)
+        print('td %s is running\n' % self.name)
         self.point.VNRegOnFrontDisconnected()
 
-
-class RegThreadOnRspUserLogin(Thread):
+#RegThreadTdOnRspUserLogin
+class RegTdThreadOnRspUserLogin(Thread):
     def __init__(self, name, point):
         super().__init__()
         self.name = name
         self.point=point
     def run(self):  # 一定要叫这个名字，不能是别的
-        print('%s is running\n' % self.name)
+        print('td %s is running\n' % self.name)
         self.point.VNRegOnRspUserLogin()
 
-class RegThreadTdOnRspUserLogin(Thread):
+#RegThreadTdOnRspUserLogin
+class RegTdThreadOnRspUserLogout(Thread):
     def __init__(self, name, point):
         super().__init__()
         self.name = name
         self.point=point
     def run(self):  # 一定要叫这个名字，不能是别的
-        print('%s is running\n' % self.name)
+        print('td %s is running\n' % self.name)
+        self.point.VNRegOnRspUserLogin()
+#---------------------------------------
+
+
+class RegMdThreadOnFrontConnected(Thread):
+    def __init__(self, name, point):
+        super().__init__()
+        self.name = name
+        self.point = point
+    def run(self):  # 一定要叫这个名字，不能是别的
+        print('md %s is running\n' % self.name)
+        self.point.VNRegOnFrontConnected()
+
+class RegMdThreadOnFrontDisconnected(Thread):
+    def __init__(self, name, point):
+        super().__init__()
+        self.name = name
+        self.point=point
+    def run(self):  # 一定要叫这个名字，不能是别的
+        print('md %s is running\n' % self.name)
+        self.point.VNRegOnFrontDisconnected()
+
+#RegThreadTdOnRspUserLogin
+class RegMdThreadOnRspUserLogin(Thread):
+    def __init__(self, name, point):
+        super().__init__()
+        self.name = name
+        self.point=point
+    def run(self):  # 一定要叫这个名字，不能是别的
+        print('md %s is running\n' % self.name)
         self.point.VNRegOnRspUserLogin()
 
-class RegThreadOnRtnDepthMarketData(Thread):
+#RegThreadTdOnRspUserLogin
+class RegMdThreadOnRspUserLogout(Thread):
+    def __init__(self, name, point):
+        super().__init__()
+        self.name = name
+        self.point=point
+    def run(self):  # 一定要叫这个名字，不能是别的
+        print('md %s is running\n' % self.name)
+        self.point.VNRegOnRspUserLogin()
+
+class RegMdThreadOnRtnDepthMarketData(Thread):
     def __init__(self, name, point):
         super().__init__()
         self.name = name
         self.point=point
     def run(self):
-        print('%s is running\n' % self.name)
+        print('md %s is running\n' % self.name)
         self.point.VNRegOnRtnDepthMarketData()
 
 
-def log_todaytd(mystr, ui):
+
+def log_todaytd(mystr):
     _translate = QtCore.QCoreApplication.translate
     item = QtWidgets.QListWidgetItem()
     ui.Tdloglist.addItem(item)
@@ -145,8 +185,7 @@ def log_todaytd(mystr, ui):
     tstr = time.strftime("%Y-%m-%d %H:%M:%S ", time.localtime())
     item.setText(_translate("MainWindow", tstr + mystr))
 
-
-def log_todaymd(mystr, ui):
+def log_todaymd(mystr):
     _translate = QtCore.QCoreApplication.translate
     item = QtWidgets.QListWidgetItem()
     ui.Mdloglist.addItem(item)
@@ -154,11 +193,12 @@ def log_todaymd(mystr, ui):
     tstr = time.strftime("%Y-%m-%d %H:%M:%S ", time.localtime())
     item.setText(_translate("MainWindow", tstr + mystr))
 
+def function_td(td, tname):
+    RegTdThreadOnFrontConnected('OnFrontConnected', td).start()
+    RegTdThreadOnFrontDisconnected('OnFrontDisconnected', td).start()
+    RegTdThreadOnRspUserLogin('OnRspUserLogin', td).start()
+    RegTdThreadOnRspUserLogout('OnRspUserLogout', td).start()
 
-def function_td(ui, td, tname):
-    RegThreadOnFrontConnected('OnFrontConnected', td).start()
-    RegThreadOnFrontDisconnected('OnFrontDisConnected', td).start()
-    RegThreadTdOnRspUserLogin('OnRspUserLogin', td).start()
     time.sleep(1)
     td.InitTD()
 
@@ -168,9 +208,9 @@ def function_td(ui, td, tname):
     # 返回1， FutureTDAccount.ini错误
     # 返回2， 登录超时
     if ret == 0:
-        log_todaytd('登陆交易成功', ui)
+        log_todaytd('登陆交易成功')
     else:
-        log_todaytd('登陆交易失败', ui)
+        log_todaytd('登陆交易失败')
 
     # 持仓数据在后台更新时，参数True为显示持仓状态，False为不显示持仓状态（仅对控制台有效）
     td.SetShowPosition(True)
@@ -192,17 +232,14 @@ def function_td(ui, td, tname):
 
     pass
 
-
-
-def function_md(ui, md, tname):
-    RegThreadOnFrontConnected('OnFrontConnected', md).start()
-    RegThreadOnFrontDisconnected('OnFrontDisConnected', md).start()
-    RegThreadOnRspUserLogin('OnRspUserLogin', md).start()
-    RegThreadOnRtnDepthMarketData('OnRtnDepthMarketData', md).start()
+def function_md(md, tname):
+    RegMdThreadOnFrontConnected('OnFrontConnected', md).start()
+    RegMdThreadOnFrontDisconnected('OnFrontDisconnected', md).start()
+    RegMdThreadOnRspUserLogin('OnRspUserLogin', md).start()
+    RegMdThreadOnRspUserLogout('OnRspUserLogout', md).start()
+    RegMdThreadOnRtnDepthMarketData('OnRtnDepthMarketData', md).start()
     time.sleep(1)
-
     md.InitMD()
-
     # md.RegisterFront()
     # Login()，不需要参数，Login读取QuickLibTD.ini的配置信息，并登录
     # 返回0， 表示登录成功，
@@ -232,9 +269,9 @@ def function_md(ui, md, tname):
     # 返回2， 登录超时
     # print ('login: ', retLogin)
     if ret == 0:
-        log_todaymd('登陆行情服务器成功', ui)
+        log_todaymd('登陆行情服务器成功')
     else:
-        log_todaymd('登陆行情服务器失败', ui)
+        log_todaymd('登陆行情服务器失败')
         # ui.table_strategy
     return
     # 重新订阅行情
@@ -273,7 +310,7 @@ def main():
         def run(self):
             md = MyCTPMarket()
             md.ui = ui
-            function_md(ui, md, self.tname)
+            function_md(md, self.tname)
 
     class TDThread(threading.Thread):
         def __init__(self, tname):
@@ -283,7 +320,7 @@ def main():
         def run(self):
             td = MyCTPTrade()
             td.ui = ui
-            function_td(ui, td,self.tname)
+            function_td(td,self.tname)
 
     """
     ui.bt_delay_popup.addActions([
