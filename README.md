@@ -22,6 +22,13 @@ VNPY官方网站 http://www.vnpy.cn
 
 VNPY知乎专栏 https://www.zhihu.com/org/vnpy/zvideos/
 
+官方QQ群： 256163463
+
+实盘支持（手续费很低）
+http://www.kaihucn.cn
+
+仿真账户支持 (仅工作日白天注册，支持股指期货、股指期权、商品期货、商品期权仿真交易)
+http://www.simnow.com.cn
 
 重点：
 在未来 VNTrader 将继承http://www.virtualapi.cn 的强大功能，具体可以见 http://www.gucps.cn
