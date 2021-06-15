@@ -175,8 +175,6 @@ class RegMdThreadOnRtnDepthMarketData(Thread):
         print('md %s is running\n' % self.name)
         self.point.VNRegOnRtnDepthMarketData()
 
-
-
 def log_todaytd(mystr):
     _translate = QtCore.QCoreApplication.translate
     item = QtWidgets.QListWidgetItem()
