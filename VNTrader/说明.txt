@@ -1,0 +1,18 @@
+VNTrader客户端开源代码 VNTrader是VNPY官方提供的CTP开源项目客户端源代码， 支持国内149家期货公司的CTP接入， 支持股指期货，股指期权、商品期货、商品期权的程序化交易和量化交易的仿真回测。
+
+VNTrader目录是VNTrader目录，VNTraderStart.py是启动程序。
+cpp source是vnctptd.dll和vnctpmd.dll的源代码，vnctptd.dll和vnctpmd.dll是用于VNTrader通过ctypes来调用的，是VNTrader和CTP之间沟通的桥梁，由于c++的加持，性能比老版本架构高出380%，这个版本是VNPY官方发布针对期货CTP接口的专属版本。
+
+全新架构，性能再次升级，python的便捷,C++性能加持，比老版本更好用，性能提升382%以上，全新系统命名未VNTrader，属于VNPY官方发布的重点全新架构的产品。
+
+推荐开发环境为pycahrm，python3.x, pyqt5，pygraphy
+
+重点： 在未来 VNTrader 将继承http://www.virtualapi.cn 的强大功能，具体可以见 http://www.gucps.cn 完全不同于历史老版本，这个版本不仅性能优异，开源，而且结合C++的特点，结合底层仿真（获得国家发明专利）成为程序化交易最佳利器。
+
+抛弃历史曾出现的大杂烩版本，专门面向国内商品期货、股指期货实现程序化交易CTP接口的专属版本，符合“精简、高性能、精细化回测、功能强大、入门更容易”等特点。
+
+
+最近更新比较频繁，一个月之后会给大家惊喜的。
+
+计划
+2021.6.15
