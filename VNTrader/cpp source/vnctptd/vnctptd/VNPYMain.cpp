@@ -17,6 +17,10 @@ std::string gFrontAddr[3];
 std::string gBrokerID;
 std::string gInvestorID;
 std::string gPassword;
+std::string gAppID;
+std::string gAuthCode;
+std::string gProductInfo;
+
 
 HANDLE ghTradedVolMutex = NULL;
 std::map<int, int> gOrderRef2TradedVol;
@@ -894,9 +898,17 @@ int InitTD()
 	gBrokerID = file.GetValueFromSection("setting", "brokeid");
 	gInvestorID = file.GetValueFromSection("setting", "investor");
 	gPassword = file.GetValueFromSection("setting", "password");
+	gAppID = file.GetValueFromSection("setting", "AppID");
+	gAuthCode = file.GetValueFromSection("setting", "AuthCode");
+	gProductInfo = file.GetValueFromSection("setting", "ProductInfo");
 	gFrontAddr[0] = file.GetValueFromSection("setting", "address1");
 	gFrontAddr[1] = file.GetValueFromSection("setting", "address2");
 	gFrontAddr[2] = file.GetValueFromSection("setting", "address3");
+
+
+	
+
+
 	if (gBrokerID == "")
 	{
 		//MessageBox(NULL, ("vnctptd.ini中BrokerID字段未设置"), ("错误提示"), MB_OK | MB_ICONWARNING);
@@ -917,9 +929,6 @@ int InitTD()
 		//MessageBox(NULL, ("vnctptd.ini中FrontAddr字段至少要设置一个"), ("错误提示"), MB_OK | MB_ICONWARNING);
 		return 1;
 	}
-
-
-
 
 	char dir[256] = { 0 };
 	::GetCurrentDirectory(255, dir);
@@ -942,8 +951,7 @@ int InitTD()
 	 mpUserApi->Init();
 	//查询持仓线程
 	HANDLE hThread3 = ::CreateThread(NULL, 0,  PositionThreadProc, NULL, 0, NULL);
-	HANDLE hThread4 = ::CreateThread(NULL, 0,  ReqQryInstrumentMarginRateThreadProc, NULL, 0, NULL);
-
+	//HANDLE hThread4 = ::CreateThread(NULL, 0,  ReqQryInstrumentMarginRateThreadProc, NULL, 0, NULL);
 	return 0;
 }
 
@@ -992,46 +1000,9 @@ void   VNRegOnRspUserLogout(void(*outputCallback)(const int* a))
 	}
 }
 
-//xxxxxx
-void   VNRegOnRspUnSubMarketData(void(*outputCallback)(const int* a))
-{
-	hEvent[EID_OnRspUnSubMarketData] = CreateEvent(NULL, FALSE, FALSE, "EID_OnRspUnSubMarketData");
-	ResetEvent(hEvent[EID_OnRspUnSubMarketData]);
-	while (1)
-	{
-		ResetEvent(hEvent[EID_OnRspUnSubMarketData]);
-		WaitForSingleObject(hEvent[EID_OnRspUnSubMarketData], INFINITE);
 
-		int a = 1;
-		outputCallback(&a);
-		/*
-		time_t t = time(0);
-		char tmp[64];
-		strftime(tmp, sizeof(tmp), "%Y/%m/%d %X %A %j  %z", localtime(&t));
-		puts(tmp);
-		*/
-	}
-}
-//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-void   VNRegOnRspSubMarketData(void(*outputCallback)(const int* a))
-{
-	hEvent[EID_OnRspSubMarketData] = CreateEvent(NULL, FALSE, FALSE, "EID_OnRspSubMarketData");
-	ResetEvent(hEvent[EID_OnRspSubMarketData]);
-	while (1)
-	{
-		ResetEvent(hEvent[EID_OnRspSubMarketData]);
-		WaitForSingleObject(hEvent[EID_OnRspSubMarketData], INFINITE);
 
-		int a = 1;
-		outputCallback(&a);
-		/*
-		time_t t = time(0);
-		char tmp[64];
-		strftime(tmp, sizeof(tmp), "%Y/%m/%d %X %A %j  %z", localtime(&t));
-		puts(tmp);
-		*/
-	}
-}
+
 
 void   VNRegOnRspQryTradingAccount(void(*outputCallback)(const int* a))
 {
@@ -1044,12 +1015,20 @@ void   VNRegOnRspQryTradingAccount(void(*outputCallback)(const int* a))
 
 		int a = 1;
 		outputCallback(&a);
-		/*
-		time_t t = time(0);
-		char tmp[64];
-		strftime(tmp, sizeof(tmp), "%Y/%m/%d %X %A %j  %z", localtime(&t));
-		puts(tmp);
-		*/
+	}
+}
+
+void   VNRegOnRspQryInvestorPosition(void(*outputCallback)(const int* a))
+{
+	hEvent[EID_OnRspQryInvestorPosition] = CreateEvent(NULL, FALSE, FALSE, "EID_OnRspQryInvestorPosition");
+	ResetEvent(hEvent[EID_OnRspQryInvestorPosition]);
+	while (1)
+	{
+		ResetEvent(hEvent[EID_OnRspQryInvestorPosition]);
+		WaitForSingleObject(hEvent[EID_OnRspQryInvestorPosition], INFINITE);
+
+		int a = 1;
+		outputCallback(&a);
 	}
 }
 

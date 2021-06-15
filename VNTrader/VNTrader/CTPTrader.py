@@ -116,14 +116,6 @@ class CTPTrader(object):
 
 
 
-    #行情回调
-    def OnRtnDepthMarketData(self, a):
-        pass
-
-    #合约订阅回调
-    def OnRspSubMarketData(self, a):
-        pass
-
     #登录回调
     def OnRspUserLogin(self, a):
         pass
@@ -140,15 +132,6 @@ class CTPTrader(object):
     def OnFrontDisconnected(self, a):
         pass
 
-    # 注册行情回调
-    def VNRegOnRtnDepthMarketData(self):
-        CMPFUNC = CFUNCTYPE(None, POINTER(VNCThostFtdcRspUserLoginField), c_void_p)
-        self.vntd.VNRegOnRtnDepthMarketData(CMPFUNC(self.OnRtnDepthMarketData))
-
-    # 注册Python的OnRspUserLogin回调函数指针，对应CTP c++的OnRspUserLogin方法
-    def VNRegTdOnRspUserLogin(self):
-        CMPFUNC = CFUNCTYPE(None, POINTER(VNCThostFtdcRspUserLoginField))
-        self.vntd.VNRegOnRspUserLogin(CMPFUNC(self.OnRspUserLogin))
 
     # 注册Python的OnRspUserLogin回调函数指针，对应CTP c++的OnRspUserLogin方法
     def VNRegOnRspUserLogin(self):
@@ -159,11 +142,6 @@ class CTPTrader(object):
     def VNRegOnRspUserLogout(self):
         CMPFUNC = CFUNCTYPE(None, POINTER(VNCThostFtdcRspUserLoginField))
         self.vntd.VNRegOnRspUserLogout(CMPFUNC(self.OnRspUserLogout))
-
-    # 注册Python的OnRspSubMarketData回调函数指针，对应CTP c++的OnRspSubMarketData方法
-    def VNRegOnRspSubMarketData(self):
-        CMPFUNC = CFUNCTYPE(None, POINTER(VNCThostFtdcRspUserLoginField))
-        self.vntd.VNRegOnRspSubMarketData(CMPFUNC(self.OnRspSubMarketData))
 
     # 注册Python的OnFrontConnected回调函数指针，对应CTP c++的OnFrontConnected方法
     def VNRegOnFrontConnected(self):

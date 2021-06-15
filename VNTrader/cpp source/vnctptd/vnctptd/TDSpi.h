@@ -17,6 +17,8 @@ public:
 
 	virtual void OnFrontConnected();
 
+	int ReqAuthenticate();
+
 	virtual void OnFrontDisconnected(int nReason); //添加
 
 	virtual void OnRspAuthenticate(CThostFtdcRspAuthenticateField *pRspAuthenticateField, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);//客户端认证响应 //need
@@ -47,7 +49,8 @@ public:
 	virtual void OnRspQryTradingAccount(CThostFtdcTradingAccountField *pTradingAccount, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 
 	virtual void OnRspQryInvestorProductGroupMargin(CThostFtdcInvestorProductGroupMarginField *pInvestorProductGroupMargin, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
-	
+ 
+
 	///请求查询合约保证金率响应
 	virtual void OnRspQryInstrumentMarginRate(CThostFtdcInstrumentMarginRateField *pInstrumentMarginRate, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 	
@@ -124,7 +127,7 @@ public:
 	CTDSpi();
 	~CTDSpi();
 
-	bool Init();
+	//bool Init();
 	bool IsInitOK(){return bInitOK;}
 };
 

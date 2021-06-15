@@ -369,10 +369,7 @@ def main():
     print(qdarkstyle.load_stylesheet_pyqt5())
     app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
 
-    tt = TDThread('tt')
-    tt.start()
-    tm = MDThread('tm')
-    tm.start()
+
 
     # auto quit after 2s when testing on travis-ci
     if "--travis" in sys.argv:
@@ -386,6 +383,10 @@ def main():
     window.setWindowIcon(QIcon('vnpy.ico'))
     window.showMaximized()
     window.show()
+    tt = TDThread('tt')
+    tt.start()
+    tm = MDThread('tm')
+    tm.start()
     app.exec_()
 
 

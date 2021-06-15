@@ -14,6 +14,10 @@ extern std::string gFrontAddr[3];
 extern std::string gBrokerID;
 extern std::string gInvestorID;
 extern std::string gPassword;
+extern std::string gAppID;
+extern std::string gAuthCode;
+extern std::string gProductInfo;
+
 
 extern HANDLE ghTradedVolMutex;
 extern std::map<int, int> gOrderRef2TradedVol;
@@ -95,27 +99,19 @@ DWORD WINAPI PositionThreadProc(void* p)	//更新排名
 {
 	while (true)
 	{
-		//CxHashList[0].HashSortUpdata();
-		//mpUserApi->
 		GState = !GState;
 		if (GState)
 		{
-			//mpUserApi->ReqQryInvestorPosition
-			//mpUserApi->
 			if(mpUserSpi)
-				mpUserSpi->ReqQryInvestorPosition();//仓位管理		
-
-				         //mpUserSpi->ReqQryInvestorPositionDetail();
+				mpUserSpi->ReqQryInvestorPosition();//查询仓位管理		
 		}
 		else
 		{
 			if (mpUserSpi)
-			//mpUserApi->
-				mpUserSpi->ReqQryTradingAccount(); //资金
-
+				mpUserSpi->ReqQryTradingAccount(); //查询资金
 		}
-
-		Sleep(3000);
+        //CTP有1S流控，太多的查询会导致查询失败
+		Sleep(1016);
 	}
 
 }
@@ -130,10 +126,10 @@ DWORD WINAPI ReqQryInstrumentMarginRateThreadProc(void* p)	//更新排名
 
 //char *Brokeid, char *Investor, char * Password, char * AppID, char *AuthCode, char * ProductInfo, char * Adder1, char * Adder2, char * Adder3
 
-
+    /*
 bool CTDSpi::Init()
 {
- 
+
 	char dir[256] = {0};
 	//::ZeroMemory(dir, 256);
 	::GetCurrentDirectory(255, dir);
@@ -163,10 +159,10 @@ bool CTDSpi::Init()
 	HANDLE hThread4 = ::CreateThread(NULL, 0, ReqQryInstrumentMarginRateThreadProc, NULL, 0, NULL);
 
 	return bInitOK;
- 
+
 
 	return true;
-}
+}    */
 void CTDSpi::ReqUserLogin()
 {
 	std::cout << __FUNCTION__ << std::endl;
@@ -182,10 +178,44 @@ void CTDSpi::ReqUserLogin()
 void CTDSpi::OnFrontConnected()
 {
 	std::cout << __FUNCTION__ << std::endl;
-
 	SetEvent(hEvent[EID_OnFrontConnected]);
-	 ReqUserLogin();
+	//认证请求
+	ReqAuthenticate();
 }
+int CTDSpi::ReqAuthenticate()
+{
+	std::cout << __FUNCTION__ << std::endl;
+	if (mpUserApi == NULL){return 1;}
+	CThostFtdcReqAuthenticateField  req;
+	memset(&req, 0, sizeof(CThostFtdcReqAuthenticateField));
+	_snprintf_s(req.BrokerID, sizeof(req.BrokerID), sizeof(req.BrokerID)-1,"%s", gBrokerID.c_str());
+	_snprintf_s(req.UserID, sizeof(req.UserID), sizeof(req.UserID) - 1, "%s", gInvestorID.c_str());
+	_snprintf_s(req.AppID, sizeof(req.AppID), sizeof(req.AppID) - 1, "%s", gAppID.c_str());
+	_snprintf_s(req.AuthCode, sizeof(req.AuthCode), sizeof(req.AuthCode) - 1, "%s", gAuthCode.c_str());
+	_snprintf_s(req.UserProductInfo, sizeof(req.UserProductInfo), sizeof(req.UserProductInfo) - 1, "%s", gProductInfo.c_str());
+	return mpUserApi->ReqAuthenticate(&req, ++iRequestID);
+}
+
+void CTDSpi::OnRspAuthenticate(CThostFtdcRspAuthenticateField *pRspAuthenticateField, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{	
+	std::cout << __FUNCTION__ << std::endl;
+	if (pRspAuthenticateField == NULL)
+	{
+		ReqAuthenticate();
+		return;
+	}
+	if (IsErrorRspInfo(pRspInfo))
+	{
+		ReqAuthenticate();
+	}
+	hEvent[EID_OnRspAuthenticate] = CreateEvent(NULL, FALSE, FALSE, "EID_OnRspAuthenticate");
+	SetEvent(hEvent[EID_OnRspAuthenticate]);
+
+	ReqUserLogin();
+}
+ 
+
+
 
 void CTDSpi::OnFrontDisconnected(int nReason)
 {
@@ -199,16 +229,6 @@ void CTDSpi::OnFrontDisconnected(int nReason)
 	::Beep(450, 10000);
 }
 
-//客户端认证响应
-void CTDSpi::OnRspAuthenticate(CThostFtdcRspAuthenticateField *pRspAuthenticateField, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
-{
-	hEvent[EID_OnRspAuthenticate] = CreateEvent(NULL, FALSE, FALSE, "EID_OnRspAuthenticate");
-
-	std::cout << __FUNCTION__ << std::endl;
-	SetEvent(hEvent[EID_OnRspAuthenticate]);
-
-}
-
 
 
 
@@ -218,7 +238,6 @@ void CTDSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,CThostFtd
 	{
 		return;
 	}
-
 	std::cout << __FUNCTION__ << std::endl;
 	FRONT_ID = pRspUserLogin->FrontID;
 	SESSION_ID = pRspUserLogin->SessionID;
@@ -233,7 +252,8 @@ void CTDSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,CThostFtd
 		{
 			printf("Scuess:登录成功\n");
 
- 
+			SetEvent(hEvent[EID_OnFrontConnected]);
+
 		    ReqSettlementInfoConfirm();
 			Sleep(3000);
 		}
@@ -662,10 +682,7 @@ void CTDSpi::ReqQryInstrumentMarginRate(char *Instrument)
 	cerr << "--->>> 请求查询投资者持仓: " << ((iResult == 0) ? "成功" : "失败") << endl;
 
 
-	//if (iResult != 0)
-		//cerr << "Failer(ReqQryInstrumentMarginRate): 请求查询投资者持仓: " << ((iResult == 0) ? "成功" : "失败(") << iResult << ")" << endl;
-	//else
-		//cerr << "Scuess(ReqQryInstrumentMarginRate): 请求查询投资者持仓: 成功" << endl;
+ 
 }
 
 
