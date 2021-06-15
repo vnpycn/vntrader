@@ -6,9 +6,9 @@ from ctypes import *
 class CTPTrader(object):
     def __init__(self):
         self.vntd = CDLL('vnctptd.dll')
-        self.fLogin = self.vntd.Login
-        self.fLogin.argtypes = []
-        self.fLogin.restype = c_int32
+        self.fReqUserLogin = self.vntd.ReqUserLogin
+        self.fReqUserLogin.argtypes = []
+        self.fReqUserLogin.restype = c_int32
 
         self.fInsertOrder = self.vntd.InsertOrder
         self.fInsertOrder.argtypes = [c_char_p, c_char, c_char, c_char, c_double, c_int32]
@@ -58,12 +58,12 @@ class CTPTrader(object):
         self.fQryQueryMaxOrderVolume.argtypes = [c_char_p, c_char_p, c_char_p, c_char, c_char, c_char, c_int32]
         self.fQryQueryMaxOrderVolume.restype = c_int32
 
-
         self.fInitTD = self.vntd.InitTD
         self.fInitTD.argtypes = []
+        self.fInitTD.restype = c_int32
 
-    def Login(self):
-        return self.fLogin()
+    def ReqUserLogin(self):
+        return self.fReqUserLogin()
 
     def InsertOrder(self, InstrumentID, Direction, OffsetFlag, PriceType, Price, Num):
         return self.fInsertOrder(InstrumentID.encode('gb2312'), Direction.encode('gb2312'), OffsetFlag.encode('gb2312'), PriceType.encode('gb2312'),
@@ -180,7 +180,5 @@ class CTPTrader(object):
         CMPFUNC = CFUNCTYPE(None, c_void_p)
         self.vntd.VNRegOnRspQryTradingAccount(CMPFUNC(self.OnFrontDisconnected))
 
-
-
     def InitTD(self):
-        self.fInitTD()
+        return self.fInitTD()

@@ -858,36 +858,7 @@ bool Start()
 
 	}
 
-	 IniFile file;
-	 if (!file.Init("vnctpmd.ini"))
-	 {
-		MessageBox(NULL, _T("读取vnctpmd.ini失败!"), _T("错误提示"), MB_OK | MB_ICONWARNING);
-		//gStatus = 1;
-	 }
 	
-	 gBrokerID = file.GetValueFromSection("md", "brokeid");
-	 gInvestorID = file.GetValueFromSection("md", "investor");
-	 gPassword = file.GetValueFromSection("md", "password");
-	 gFrontAddr[0] = file.GetValueFromSection("md", "address1");
-	 gFrontAddr[1] = file.GetValueFromSection("md", "address2");
-	 gFrontAddr[2] = file.GetValueFromSection("md", "address3");
-
-	 printf("CPP  %s , %s  , %s\n",gBrokerID.c_str(), gInvestorID.c_str(), gFrontAddr[0].c_str());
-
-
-	 if (gBrokerID == "")
-	 {
-		 MessageBox(NULL, _T("vnctpmd.ini中BrokerID字段未设置"), _T("错误提示"), MB_OK | MB_ICONWARNING);
-	 }
-	 if (gInvestorID == "")
-	 {
-		 MessageBox(NULL, _T("vnctpmd.ini中InvestorID字段未设置"), _T("错误提示"), MB_OK | MB_ICONWARNING);
-	 }
-	 if (gFrontAddr[0] == "" &&  gFrontAddr[1]=="" && gFrontAddr[2] == "")
-	 {
-		 MessageBox(NULL, _T("vnctpmd.ini中FrontAddr字段至少要设置一个"), _T("错误提示"), MB_OK | MB_ICONWARNING);
-	 }
-
 
 	ReadTradeTime();
 
@@ -2012,10 +1983,44 @@ char *  GetApiVersion()
 
 
  
-void InitMD()
+int InitMD()
 
 // void InitMD(char *Brokeid, char *Investor, char * Password, char * AppID, char *AuthCode, char * ProductInfo, char * Adder1, char * Adder2, char * Adder3)
 {
+	IniFile file;
+	if (!file.Init("vnctpmd.ini"))
+	{
+		//MessageBox(NULL, _T("读取vnctpmd.ini失败!"), _T("错误提示"), MB_OK | MB_ICONWARNING);
+		//gStatus = 1;
+		return 1;
+	}
+
+	gBrokerID = file.GetValueFromSection("setting", "brokeid");
+	gInvestorID = file.GetValueFromSection("setting", "investor");
+	gPassword = file.GetValueFromSection("setting", "password");
+	gFrontAddr[0] = file.GetValueFromSection("setting", "address1");
+	gFrontAddr[1] = file.GetValueFromSection("setting", "address2");
+	gFrontAddr[2] = file.GetValueFromSection("setting", "address3");
+
+	//printf("CPP  %s , %s  , %s\n", gBrokerID.c_str(), gInvestorID.c_str(), gFrontAddr[0].c_str());
+
+	/*
+	if (gBrokerID == "")
+	{
+		//MessageBox(NULL, _T("vnctpmd.ini中BrokerID字段未设置"), _T("错误提示"), MB_OK | MB_ICONWARNING);
+		return 1;
+	}
+	if (gInvestorID == "")
+	{
+		//MessageBox(NULL, _T("vnctpmd.ini中InvestorID字段未设置"), _T("错误提示"), MB_OK | MB_ICONWARNING);
+		return 1;
+	}
+	*/
+	if (gFrontAddr[0] == "" &&  gFrontAddr[1] == "" && gFrontAddr[2] == "")
+	{
+		//MessageBox(NULL, _T("vnctpmd.ini中FrontAddr字段至少要设置一个"), _T("错误提示"), MB_OK | MB_ICONWARNING);
+		return 1;
+	}
 
  
 		char dir[256] = { 0 };
@@ -2031,6 +2036,8 @@ void InitMD()
 		cerr << "--->>> " << (char *)gFrontAddr[1].c_str() << std::endl;
 		cerr << "--->>> " << (char *)gFrontAddr[2].c_str() << std::endl;
 		mpUserApi->Init();
+
+		return 0;
 }
 
 
@@ -2052,6 +2059,7 @@ void VN_EXPORT RegisterNameServer(char *pszNsAddress)
 
 int ReqUserLogin()
 {
+	
 	return gMDSpi.ReqUserLogin();
 }
 

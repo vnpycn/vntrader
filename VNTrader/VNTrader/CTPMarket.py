@@ -74,6 +74,7 @@ class CTPMarket(object):
 
         self.fInitMD = self.vnmd.InitMD
         self.fInitMD.argtypes = []
+        self.fInitMD.restype = c_int32
 
         self.fLog = self.vnmd.Log
         self.fLog.argtypes = [c_char_p, c_char_p]
@@ -542,4 +543,4 @@ class CTPMarket(object):
         self.vnmd.VNRegOnFrontDisconnected(CMPFUNC(self.OnFrontDisconnected))
 
     def InitMD(self):
-        self.fInitMD()
+        return self.fInitMD()

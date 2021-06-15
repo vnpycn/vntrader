@@ -37,14 +37,13 @@ extern "C" {
 	void VN_EXPORT VNRegOnRspQryTradingAccount(void(*outputCallback)(const int* a));
 
 	
-
-	void VN_EXPORT InitTD();
+    int VN_EXPORT InitTD();
 
 
 
 
 int VN_EXPORT QryQueryMaxOrderVolume(char *BrokerID, char * InvestorID, char * Instrument, char * Direction, char * OffsetFlag, char * HedgeFlag,int MaxVolume);
-int VN_EXPORT Login();
+int VN_EXPORT ReqUserLogin();
 int VN_EXPORT InsertOrderByRate(char *Instrument, char direction, char offsetFlag, char priceType, double price,double rate, bool BalanceType,int multiplier);
 int VN_EXPORT InsertOrder(char *Instrument,char direction, char offsetFlag, char priceType, double price, int num);
 int VN_EXPORT DeleteOrder(char *Instrument, int OrderRef);

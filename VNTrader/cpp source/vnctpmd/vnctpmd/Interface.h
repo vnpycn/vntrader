@@ -57,7 +57,7 @@ extern "C"{
 
 	// void VN_EXPORT InitMD(char *Brokeid, char *Investor, char * Password,char * AppID,char *AuthCode,char * ProductInfo, char * Adder1, char * Adder2, char * Adder3);
 
-	void VN_EXPORT InitMD();
+	int VN_EXPORT InitMD();
 
 
 	VN_EXPORT char *  GetApiVersion();

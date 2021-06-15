@@ -66,51 +66,19 @@ void End()
 	}
 }
 
-int Login()
+int ReqUserLogin()
 {
-	IniFile file;
-	if (!file.Init("vnctptd.ini"))
-	{
-		//MessageBox(NULL, ("读取vnctptd.ini失败!"), ("错误提示"), MB_OK | MB_ICONWARNING);
-		return 1;
-	}
-	gBrokerID = file.GetValueFromSection("td", "brokeid");
-	gInvestorID = file.GetValueFromSection("td", "investor");
-	gPassword = file.GetValueFromSection("td", "password");
-	gFrontAddr[0] = file.GetValueFromSection("td", "address1");
-	gFrontAddr[1] = file.GetValueFromSection("td", "address2");
-	gFrontAddr[2] = file.GetValueFromSection("td", "address3");
-	if (gBrokerID == "")
-	{
-		//MessageBox(NULL, ("vnctptd.ini中BrokerID字段未设置"), ("错误提示"), MB_OK | MB_ICONWARNING);
-		return 1;
-	}
-	if (gInvestorID == "")
-	{
-		//MessageBox(NULL, ("vnctptd.ini中InvestorID字段未设置"), ("错误提示"), MB_OK | MB_ICONWARNING);
-		return 1;
-	}
-	if (gPassword == "")
-	{
-		//MessageBox(NULL, ("vnctptd.ini中Password字段未设置"), ("错误提示"), MB_OK | MB_ICONWARNING);
-		return 1;
-	}
-	if (gFrontAddr[0] == "" &&  gFrontAddr[1] == "" && gFrontAddr[2] == "")
-	{
-		//MessageBox(NULL, ("vnctptd.ini中FrontAddr字段至少要设置一个"), ("错误提示"), MB_OK | MB_ICONWARNING);
-		return 1;
-	}
- 
+/*
 	printf("BrokerID：%s\n", gBrokerID.c_str());
 	printf("InvestorID：%s\n", gInvestorID.c_str());
 	printf("CTP TD Server IP1:%s\n", gFrontAddr[0].c_str());
 	printf("CTP TD Server IP2:%s\n", gFrontAddr[1].c_str());
 	printf("CTP TD Server IP3:%s\n", gFrontAddr[2].c_str());
  
-	return 0;
-	/*
-	bool ret = gTraderSpi.Init();
-	if (ret)
+ */
+	
+	//bool ret = gTraderSpi.Init();
+	/*if (ret)
 	{
 		return 0;
 	}else
@@ -118,6 +86,7 @@ int Login()
 		return 2;
 	}
 	*/
+	return 0;
 }
 
 
@@ -911,10 +880,47 @@ void SetShowPosition(bool showstate)
 extern DWORD WINAPI PositionThreadProc(void* p);	//更新排名
 extern DWORD WINAPI ReqQryInstrumentMarginRateThreadProc(void* p);	//更新排名
 
-void InitTD()
+int InitTD()
 {
-	return;
 	cerr << "--->>> " << __FUNCTION__ << std::endl;
+
+	IniFile file;
+	if (!file.Init("vnctptd.ini"))
+	{
+		//MessageBox(NULL, ("读取vnctptd.ini失败!"), ("错误提示"), MB_OK | MB_ICONWARNING);
+		return 1;
+	}
+	
+	gBrokerID = file.GetValueFromSection("setting", "brokeid");
+	gInvestorID = file.GetValueFromSection("setting", "investor");
+	gPassword = file.GetValueFromSection("setting", "password");
+	gFrontAddr[0] = file.GetValueFromSection("setting", "address1");
+	gFrontAddr[1] = file.GetValueFromSection("setting", "address2");
+	gFrontAddr[2] = file.GetValueFromSection("setting", "address3");
+	if (gBrokerID == "")
+	{
+		//MessageBox(NULL, ("vnctptd.ini中BrokerID字段未设置"), ("错误提示"), MB_OK | MB_ICONWARNING);
+		return 1;
+	}
+	if (gInvestorID == "")
+	{
+		//MessageBox(NULL, ("vnctptd.ini中InvestorID字段未设置"), ("错误提示"), MB_OK | MB_ICONWARNING);
+		return 1;
+	}
+	if (gPassword == "")
+	{
+		//MessageBox(NULL, ("vnctptd.ini中Password字段未设置"), ("错误提示"), MB_OK | MB_ICONWARNING);
+		return 1;
+	}
+	if (gFrontAddr[0] == "" &&  gFrontAddr[1] == "" && gFrontAddr[2] == "")
+	{
+		//MessageBox(NULL, ("vnctptd.ini中FrontAddr字段至少要设置一个"), ("错误提示"), MB_OK | MB_ICONWARNING);
+		return 1;
+	}
+
+
+
+
 	char dir[256] = { 0 };
 	::GetCurrentDirectory(255, dir);
 	std::string tempDir = std::string(dir).append("\\TdTemp\\");
@@ -927,13 +933,18 @@ void InitTD()
 	mpUserApi->RegisterFront((char *)gFrontAddr[0].c_str());
 	mpUserApi->RegisterFront((char *)gFrontAddr[1].c_str());
 	mpUserApi->RegisterFront((char *)gFrontAddr[2].c_str());
+
+
 	cerr << "--->>> " << (char *)gFrontAddr[0].c_str() << std::endl;
 	cerr << "--->>> " << (char *)gFrontAddr[1].c_str() << std::endl;
 	cerr << "--->>> " << (char *)gFrontAddr[2].c_str() << std::endl;
-	mpUserApi->Init();
+ 
+	 mpUserApi->Init();
 	//查询持仓线程
 	HANDLE hThread3 = ::CreateThread(NULL, 0,  PositionThreadProc, NULL, 0, NULL);
 	HANDLE hThread4 = ::CreateThread(NULL, 0,  ReqQryInstrumentMarginRateThreadProc, NULL, 0, NULL);
+
+	return 0;
 }
 
 

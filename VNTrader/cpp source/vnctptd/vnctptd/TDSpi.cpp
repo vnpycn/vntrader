@@ -55,7 +55,7 @@ std::map<std::string, int> gTypeCheckState_B_History;
 //授权功能
 CThostFtdcTraderApi *mpUserApi;
 //自己增加
-CTDSpi *mpUserSpi;
+CTDSpi *mpUserSpi=NULL;
 
 
 CTDSpi::CTDSpi()
@@ -102,12 +102,14 @@ DWORD WINAPI PositionThreadProc(void* p)	//更新排名
 		{
 			//mpUserApi->ReqQryInvestorPosition
 			//mpUserApi->
+			if(mpUserSpi)
 				mpUserSpi->ReqQryInvestorPosition();//仓位管理		
 
 				         //mpUserSpi->ReqQryInvestorPositionDetail();
 		}
 		else
 		{
+			if (mpUserSpi)
 			//mpUserApi->
 				mpUserSpi->ReqQryTradingAccount(); //资金
 
@@ -120,6 +122,7 @@ DWORD WINAPI PositionThreadProc(void* p)	//更新排名
 
 DWORD WINAPI ReqQryInstrumentMarginRateThreadProc(void* p)	//更新排名
 {
+	if (mpUserSpi)
 	 	mpUserSpi->ReqQryInstrumentMarginRate("rb1701");//仓位管理		
 		return 1;
 }  
@@ -130,7 +133,7 @@ DWORD WINAPI ReqQryInstrumentMarginRateThreadProc(void* p)	//更新排名
 
 bool CTDSpi::Init()
 {
-	/*
+ 
 	char dir[256] = {0};
 	//::ZeroMemory(dir, 256);
 	::GetCurrentDirectory(255, dir);
@@ -160,7 +163,7 @@ bool CTDSpi::Init()
 	HANDLE hThread4 = ::CreateThread(NULL, 0, ReqQryInstrumentMarginRateThreadProc, NULL, 0, NULL);
 
 	return bInitOK;
-	*/
+ 
 
 	return true;
 }

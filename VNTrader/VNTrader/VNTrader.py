@@ -31,9 +31,9 @@ class MyCTPTrade(CTPTrader):
     # 登录回调
     def OnRspUserLogin(self,a):
         # print(a.contents.a1, a.contents.a2)
-        print(u'行情登录成功OnRspUserLogout')
+        print(u'交易登录成功OnRspUserLogin')
         #self.SubscribeMarketData('rb2110')
-        log_todaytd('行情登录成功OnRspUserLogout')
+        log_todaytd('交易登录成功OnRspUserLogin')
 
     # 退出登录回调
     def OnRspUserLogout(self, a):
@@ -209,16 +209,17 @@ def function_td(td, tname):
 
     time.sleep(1)
     td.InitTD()
-
+    #if td.InitTD() != 0:
+    #    log_todaytd('初始化失败，请检查vnctptd.ini配置文件是否配置正确')
     # 调用交易接口元素，通过 “ 接口变量.元素（接口类内部定义的方法或变量） ” 形式调用
     # Login()，不需要参数，Login读取TD.ini的配置信息，并登录
     # 返回0， 表示登录成功，
     # 返回1， FutureTDAccount.ini错误
     # 返回2， 登录超时
-    if td.Login() == 0:
+    if td.ReqUserLogin() == 0:
         log_todaytd('发送登录交易服务器请求成功')
     else:
-        log_todaytd('发送登录交易服务器请求失败，请检查vnctptd.ini配置文件是否配置正确')
+        log_todaytd('发送登录交易服务器请求失败')
 
     # 持仓数据在后台更新时，参数True为显示持仓状态，False为不显示持仓状态（仅对控制台有效）
     td.SetShowPosition(True)
@@ -247,7 +248,9 @@ def function_md(md, tname):
     RegMdThreadOnRspUserLogout('OnRspUserLogout', md).start()
     RegMdThreadOnRtnDepthMarketData('OnRtnDepthMarketData', md).start()
     time.sleep(1)
-    md.InitMD()
+    if md.InitMD() != 0:
+        log_todaymd('初始化失败，请检查vnctpmd.ini配置文件是否配置正确')
+        return
     # md.RegisterFront()
     # Login()，不需要参数，Login读取QuickLibTD.ini的配置信息，并登录
     # 返回0， 表示登录成功，
@@ -263,9 +266,9 @@ def function_md(md, tname):
 
     #if md.Login() == 0:
     if md.ReqUserLogin() == 0:
-        log_todaytd('发送登录行情服务器请求成功')
+        log_todaymd('发送登录行情服务器请求成功')
     else:
-        log_todaytd('发送登录行情服务器请求失败，请检查vnctpmd.ini配置文件是否配置正确')
+        log_todaymd('发送登录行情服务器请求失败')
     # 若登录成功，会触发 OnRspUserLogin 回调
     # 若登录失败，会触发 OnRspUserLogout 回调
     # 登录成功后，就可以执行情订阅等操作了，所以行情订阅放置在OnRspUserLogin()中执行
