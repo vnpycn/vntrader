@@ -20,6 +20,7 @@ extern std::map<int, int> gOrderRef2TradedVol;
 
 //乘数
 std::map<std::string, double> gUnderlyingMultiple;
+char	InstrumentID_n[TYPE_NUM][10] = { 0 };
 
 
 //保证金率
@@ -82,42 +83,11 @@ CTDSpi::~CTDSpi()
 	std::cout << "<--" << __FUNCTION__ << std::endl;
 }
 
-#include <ShellApi.h> //ShellExecute
+#include <ShellApi.h>
 #include <iostream> 
 #include <fstream> 
 using namespace std;
-void  WirteUpdateNotice()
-{
-	/*
-	char str[200] = { 0 };
-	strcat_s(str, 200, "QuickLib最新库更新提示.txt");
-	//检查文件是否存在，是否需要新建文本文件
-	ifstream inf;
-	ofstream ouf;
-	inf.open(str, ios::out);
-	//}
-	if (inf)
-	{
-		ofstream o_file(str, ios::app);
-	}
-	//记录TICK数据
-	ofstream o_file(str, ios::app);
-	//if ( RunMode && ( check0 || check1 || check2) )
 
-	//printf("xxxxxxxxxxxxxx%.06f\n",dbtoch(tick_data[id][1]));
-
-	//<<
-	//ticktime << "," 
-	//<< price 
-
-
-	//o_file << "本库已经过期，请去官方网站http://www.quicklib.cn 下载最新版本" << endl;
-
-
-
-	o_file.close();						//关闭文件
-	*/
-}
 
 
 bool GState = true;
@@ -150,7 +120,6 @@ DWORD WINAPI PositionThreadProc(void* p)	//更新排名
 
 DWORD WINAPI ReqQryInstrumentMarginRateThreadProc(void* p)	//更新排名
 {
-
 	 	mpUserSpi->ReqQryInstrumentMarginRate("rb1701");//仓位管理		
 		return 1;
 }  
@@ -186,10 +155,6 @@ bool CTDSpi::Init()
 	{
 		bInitOK = true;
 	}
-
- 
-
-
 	//查询持仓线程
 	HANDLE hThread3 = ::CreateThread(NULL, 0, PositionThreadProc, NULL, 0, NULL);
 	HANDLE hThread4 = ::CreateThread(NULL, 0, ReqQryInstrumentMarginRateThreadProc, NULL, 0, NULL);
@@ -199,24 +164,30 @@ bool CTDSpi::Init()
 
 	return true;
 }
-
-void CTDSpi::OnFrontConnected()
+void CTDSpi::ReqUserLogin()
 {
-	//std::cout << __FUNCTION__ << std::endl;
+	std::cout << __FUNCTION__ << std::endl;
+
 	CThostFtdcReqUserLoginField req;
 	::ZeroMemory(&req, sizeof(req));
-	strcpy_s(req.BrokerID,sizeof(TThostFtdcBrokerIDType), gBrokerID.c_str());
-	strcpy_s(req.UserID,sizeof(TThostFtdcUserIDType), gInvestorID.c_str());
-	strcpy_s(req.Password,sizeof(TThostFtdcPasswordType), gPassword.c_str());
-
+	strcpy_s(req.BrokerID, sizeof(TThostFtdcBrokerIDType), gBrokerID.c_str());
+	strcpy_s(req.UserID, sizeof(TThostFtdcUserIDType), gInvestorID.c_str());
+	strcpy_s(req.Password, sizeof(TThostFtdcPasswordType), gPassword.c_str());
 	int re = mpUserApi->ReqUserLogin(&req, ++iRequestID);
 
- 
- 
+}
+void CTDSpi::OnFrontConnected()
+{
+	std::cout << __FUNCTION__ << std::endl;
+
+	SetEvent(hEvent[EID_OnFrontConnected]);
+	 ReqUserLogin();
 }
 
 void CTDSpi::OnFrontDisconnected(int nReason)
 {
+	std::cout << __FUNCTION__ << std::endl;
+
 	SYSTEMTIME t;
 	::GetLocalTime(&t);
 	std::cout << t.wHour << ":" << t.wMinute << ":" << t.wSecond << std::endl;
@@ -228,7 +199,11 @@ void CTDSpi::OnFrontDisconnected(int nReason)
 //客户端认证响应
 void CTDSpi::OnRspAuthenticate(CThostFtdcRspAuthenticateField *pRspAuthenticateField, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
+	hEvent[EID_OnRspAuthenticate] = CreateEvent(NULL, FALSE, FALSE, "EID_OnRspAuthenticate");
+
 	std::cout << __FUNCTION__ << std::endl;
+	SetEvent(hEvent[EID_OnRspAuthenticate]);
+
 }
 
 
@@ -301,18 +276,15 @@ void CTDSpi::OnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout, CThostFtdcR
 	}
 }
 
-void CTDSpi::ReqSettlementInfoConfirm()
+int CTDSpi::ReqSettlementInfoConfirm()
 {
+	//投资者结算结果确认
 	std::cout << __FUNCTION__ << std::endl;
 	CThostFtdcSettlementInfoConfirmField req;
 	memset(&req, 0, sizeof(CThostFtdcSettlementInfoConfirmField));
 	strcpy_s(req.BrokerID,sizeof(req.BrokerID), gBrokerID.c_str());
 	strcpy_s(req.InvestorID,sizeof(req.InvestorID), gInvestorID.c_str());
-	int iResult=mpUserApi->ReqSettlementInfoConfirm(&req, ++iRequestID);
-	if (iResult != 0)
-		cerr << "Failer: 投资者结算结果确认: " << ((iResult == 0) ? "成功" : "失败(") << iResult << ")" << endl;
-	else
-		cerr << "Scuess: 投资者结算结果确认: 成功" << endl;
+	return mpUserApi->ReqSettlementInfoConfirm(&req, ++iRequestID);
 }
 
 void CTDSpi::OnRspSettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField *pSettlementInfoConfirm, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
@@ -321,7 +293,7 @@ void CTDSpi::OnRspSettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField *pS
 	if (bIsLast)
 	{
 		::SetEvent(hSyncObj);
-		printf("确认结算单成功\n");
+		//确认结算单成功
 	}
 }
 
@@ -345,7 +317,6 @@ void CTDSpi::OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool b
 {
 	std::cerr << pRspInfo->ErrorID << "\t" << pRspInfo->ErrorMsg << std::endl;
 	IsErrorRspInfo(pRspInfo);
-
 }
 
 void CTDSpi::OnRtnOrder(CThostFtdcOrderField *pOrder)
@@ -752,28 +723,20 @@ int CTDSpi::ReqQryContractBank(CThostFtdcQryContractBankField *pQryContractBank,
 
 
 
-void CTDSpi::ReqQryTradingAccount()
+int CTDSpi::ReqQryTradingAccount()
 {
 	if (mpUserApi == NULL)
 	{
-		return;
+		return 1;
 	}
 	CThostFtdcQryTradingAccountField req;
 	memset(&req, 0, sizeof(CThostFtdcQryTradingAccountField));
 	strcpy_s(req.BrokerID,sizeof(TThostFtdcBrokerIDType), gBrokerID.c_str());
 	strcpy_s(req.InvestorID,sizeof(TThostFtdcInvestorIDType), gInvestorID.c_str());
-	int iResult = mpUserApi->ReqQryTradingAccount(&req, ++iRequestID);
- 	//cerr << "--->>> 请求查询资金账户: " << ((iResult == 0) ? "成功" : "失败") << endl;
-
-
-	if (iResult != 0)
-		cerr << "Failer(ReqQryTradingAccount): 请求查询资金账户: " << ((iResult == 0) ? "成功" : "失败(") << iResult << ")" << endl;
-	else
-		cerr << "Scuess(ReqQryTradingAccount): 请求查询资金账户: 成功" << endl;
+	return mpUserApi->ReqQryTradingAccount(&req, ++iRequestID); 
 }
 
 
-char	InstrumentID_n[TYPE_NUM][10] ={0};
 
 bool FindStr(int id, char * str)
 {

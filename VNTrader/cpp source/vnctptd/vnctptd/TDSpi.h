@@ -8,6 +8,8 @@
 官方网站：http://www.vnpy.cn
 */
 #pragma once
+extern HANDLE hEvent[MAX_EVENTNUM];
+
 extern CThostFtdcTraderApi *mpUserApi;
 class CTDSpi: public CThostFtdcTraderSpi
 {
@@ -71,7 +73,7 @@ public:
 
  public: //更改为public
 		///请求查询资金账户
-	void ReqQryTradingAccount();
+	int ReqQryTradingAccount();
 	///请求查询投资者持仓
 	void ReqQryInvestorPosition();
  	///请求查询合约(乘数)
@@ -117,7 +119,7 @@ public:
 
 	void ReqUserLogin();
 
-	void ReqSettlementInfoConfirm();
+	int ReqSettlementInfoConfirm();
 
 	CTDSpi();
 	~CTDSpi();

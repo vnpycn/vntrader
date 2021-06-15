@@ -71,53 +71,44 @@ int Login()
 	IniFile file;
 	if (!file.Init("vnctptd.ini"))
 	{
-		MessageBox(NULL, ("读取vnctptd.ini失败!"), ("错误提示"), MB_OK | MB_ICONWARNING);
-		exit(1);
+		//MessageBox(NULL, ("读取vnctptd.ini失败!"), ("错误提示"), MB_OK | MB_ICONWARNING);
+		return 1;
 	}
-
-
 	gBrokerID = file.GetValueFromSection("td", "brokeid");
 	gInvestorID = file.GetValueFromSection("td", "investor");
 	gPassword = file.GetValueFromSection("td", "password");
 	gFrontAddr[0] = file.GetValueFromSection("td", "address1");
 	gFrontAddr[1] = file.GetValueFromSection("td", "address2");
 	gFrontAddr[2] = file.GetValueFromSection("td", "address3");
-
-
 	if (gBrokerID == "")
 	{
-		MessageBox(NULL, ("vnctptd.ini中BrokerID字段未设置"), ("错误提示"), MB_OK | MB_ICONWARNING);
-		exit(1);
+		//MessageBox(NULL, ("vnctptd.ini中BrokerID字段未设置"), ("错误提示"), MB_OK | MB_ICONWARNING);
+		return 1;
 	}
 	if (gInvestorID == "")
 	{
-		MessageBox(NULL, ("vnctptd.ini中InvestorID字段未设置"), ("错误提示"), MB_OK | MB_ICONWARNING);
-		exit(1);
+		//MessageBox(NULL, ("vnctptd.ini中InvestorID字段未设置"), ("错误提示"), MB_OK | MB_ICONWARNING);
+		return 1;
 	}
 	if (gPassword == "")
 	{
-		MessageBox(NULL, ("vnctptd.ini中Password字段未设置"), ("错误提示"), MB_OK | MB_ICONWARNING);
-		exit(1);
+		//MessageBox(NULL, ("vnctptd.ini中Password字段未设置"), ("错误提示"), MB_OK | MB_ICONWARNING);
+		return 1;
 	}
-
 	if (gFrontAddr[0] == "" &&  gFrontAddr[1] == "" && gFrontAddr[2] == "")
 	{
-		MessageBox(NULL, ("vnctptd.ini中FrontAddr字段至少要设置一个"), ("错误提示"), MB_OK | MB_ICONWARNING);
-		exit(1);
+		//MessageBox(NULL, ("vnctptd.ini中FrontAddr字段至少要设置一个"), ("错误提示"), MB_OK | MB_ICONWARNING);
+		return 1;
 	}
-
-
-
-
+ 
 	printf("BrokerID：%s\n", gBrokerID.c_str());
 	printf("InvestorID：%s\n", gInvestorID.c_str());
 	printf("CTP TD Server IP1:%s\n", gFrontAddr[0].c_str());
 	printf("CTP TD Server IP2:%s\n", gFrontAddr[1].c_str());
 	printf("CTP TD Server IP3:%s\n", gFrontAddr[2].c_str());
-
-
-
-
+ 
+	return 0;
+	/*
 	bool ret = gTraderSpi.Init();
 	if (ret)
 	{
@@ -126,6 +117,7 @@ int Login()
 	{
 		return 2;
 	}
+	*/
 }
 
 
@@ -988,6 +980,8 @@ void   VNRegOnRspUserLogout(void(*outputCallback)(const int* a))
 		*/
 	}
 }
+
+//xxxxxx
 void   VNRegOnRspUnSubMarketData(void(*outputCallback)(const int* a))
 {
 	hEvent[EID_OnRspUnSubMarketData] = CreateEvent(NULL, FALSE, FALSE, "EID_OnRspUnSubMarketData");
@@ -1007,7 +1001,7 @@ void   VNRegOnRspUnSubMarketData(void(*outputCallback)(const int* a))
 		*/
 	}
 }
-
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 void   VNRegOnRspSubMarketData(void(*outputCallback)(const int* a))
 {
 	hEvent[EID_OnRspSubMarketData] = CreateEvent(NULL, FALSE, FALSE, "EID_OnRspSubMarketData");
@@ -1027,7 +1021,28 @@ void   VNRegOnRspSubMarketData(void(*outputCallback)(const int* a))
 		*/
 	}
 }
-extern HANDLE hEvent[MAX_EVENTNUM];
+
+void   VNRegOnRspQryTradingAccount(void(*outputCallback)(const int* a))
+{
+	hEvent[EID_OnRspQryTradingAccount] = CreateEvent(NULL, FALSE, FALSE, "EID_OnRspQryTradingAccount");
+	ResetEvent(hEvent[EID_OnRspQryTradingAccount]);
+	while (1)
+	{
+		ResetEvent(hEvent[EID_OnRspQryTradingAccount]);
+		WaitForSingleObject(hEvent[EID_OnRspQryTradingAccount], INFINITE);
+
+		int a = 1;
+		outputCallback(&a);
+		/*
+		time_t t = time(0);
+		char tmp[64];
+		strftime(tmp, sizeof(tmp), "%Y/%m/%d %X %A %j  %z", localtime(&t));
+		puts(tmp);
+		*/
+	}
+}
+
+
 
  
 
