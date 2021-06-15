@@ -31,61 +31,62 @@ class MyCTPTrade(CTPTrader):
     # 登录回调
     def OnRspUserLogin(self,a):
         # print(a.contents.a1, a.contents.a2)
-        print(u'td OnRspUserLogin(Python)')
+        print(u'行情登录成功OnRspUserLogout')
         #self.SubscribeMarketData('rb2110')
-        log_todaytd('OnRspUserLogin')
+        log_todaytd('行情登录成功OnRspUserLogout')
 
     # 退出登录回调
     def OnRspUserLogout(self, a):
         print(a.contents.a1, a.contents.a2)
-        print(u'td OnRspUserLogout(Python)')
-        log_todaytd('OnRspUserLogout')
+        print(u'交易登出成功OnRspUserLogout')
+        log_todaytd('交易登出成功OnRspUserLogout')
 
     # 建立连接回调
     def OnFrontConnected(self):
-        print("td OnFrontConnected(Python)")
-        log_todaytd('OnFrontConnected')
+        print("连接交易服务器成功OnFrontConnected")
+        log_todaytd('连接交易服务器成功OnFrontConnected')
 
     # 断开连接回调
     def OnFrontDisconnected(self, a):
-        print("td OnFrontDisconnected(Python)")
-        log_todaytd('OnFrontDisconnected')
+        print("断开与交易服务器连接OnFrontDisconnected")
+        log_todaytd('断开与交易服务器连接OnFrontDisconnected')
 
 # MyCTPMarket类继承自CTPMarket类
 class MyCTPMarket(CTPMarket):
     # 行情回调
     def OnRtnDepthMarketData(self, a):
         print(a.InstrumentID)
-        print(u'md OnRtnDepthMarketData(Python)')
-        log_todaymd('OnRtnDepthMarketData')
+        print(u'订阅合约成功OnRtnDepthMarketData')
+        log_todaymd('订阅合约成功OnRtnDepthMarketData')
 
     # 合约订阅回调
     def OnRspSubMarketData(self, a):
         print(a.contents.a1, a.contents.a2)
-        print(u'md OnRspSubMarketData(Python)')
-        log_todaymd('OnRspSubMarketData')
+        print(u'反订阅合约成功OnRspSubMarketData')
+        log_todaymd('反订阅合约成功OnRspSubMarketData')
 
     # 登录回调
     def OnRspUserLogin(self,a):
         # print(a.contents.a1, a.contents.a2)
-        print(u'md OnRspUserLogin(Python)')
-        log_todaymd('OnRspUserLogin')
-        #self.SubscribeMarketData('rb2110')
+        print(u'行情登录成功OnRspUserLogin')
+        log_todaymd('行情登录成功OnRspUserLogin')
+        self.SubscribeMarketData(u'rb2110')
+        # 订阅品种zn1610，接收Tick数据,不根据Tick生成其他周期价格数据,但可根据AddPeriod函数添加周期价格数据的设置
 
     # 退出登录回调
     def OnRspUserLogout(self, a):
         print(a.contents.a1, a.contents.a2)
-        print(u'md OnRspUserLogout(Python)')
-        log_todaymd('OnRspUserLogout')
+        print(u'行情登出成功OnRspUserLogout')
+        log_todaymd('行情登出成功OnRspUserLogout')
     # 建立连接回调
     def OnFrontConnected(self):
-        print("md OnFrontConnected(Python2)")
-        log_todaymd('OnFrontConnected')
+        print("连接行情服务器成功OnFrontConnected")
+        log_todaymd('连接行情服务器成功OnFrontConnected')
 
     # 断开连接回调
     def OnFrontDisconnected(self, a):
-        print("md OnFrontDisconnected(Python)")
-        log_todaymd('OnFrontDisconnected')
+        print("断开与行情服务器连接OnFrontDisconnected")
+        log_todaymd('断开与行情服务器连接OnFrontDisconnected')
 
 
 class RegTdThreadOnFrontConnected(Thread):
@@ -106,7 +107,6 @@ class RegTdThreadOnFrontDisconnected(Thread):
         print('td %s is running\n' % self.name)
         self.point.VNRegOnFrontDisconnected()
 
-#RegThreadTdOnRspUserLogin
 class RegTdThreadOnRspUserLogin(Thread):
     def __init__(self, name, point):
         super().__init__()
@@ -116,7 +116,6 @@ class RegTdThreadOnRspUserLogin(Thread):
         print('td %s is running\n' % self.name)
         self.point.VNRegOnRspUserLogin()
 
-#RegThreadTdOnRspUserLogin
 class RegTdThreadOnRspUserLogout(Thread):
     def __init__(self, name, point):
         super().__init__()
@@ -124,7 +123,17 @@ class RegTdThreadOnRspUserLogout(Thread):
         self.point=point
     def run(self):  # 一定要叫这个名字，不能是别的
         print('td %s is running\n' % self.name)
-        self.point.VNRegOnRspUserLogin()
+        self.point.VNRegOnRspUserLogout()
+
+
+class RegTdThreadOnRspQryTradingAccount(Thread):
+    def __init__(self, name, point):
+        super().__init__()
+        self.name = name
+        self.point=point
+    def run(self):  # 一定要叫这个名字，不能是别的
+        print('td %s is running\n' % self.name)
+        self.point.VNRegOnRspQryTradingAccount()
 #---------------------------------------
 
 
@@ -164,7 +173,7 @@ class RegMdThreadOnRspUserLogout(Thread):
         self.point=point
     def run(self):  # 一定要叫这个名字，不能是别的
         print('md %s is running\n' % self.name)
-        self.point.VNRegOnRspUserLogin()
+        self.point.VNRegOnRspUserLogout()
 
 class RegMdThreadOnRtnDepthMarketData(Thread):
     def __init__(self, name, point):
@@ -196,19 +205,20 @@ def function_td(td, tname):
     RegTdThreadOnFrontDisconnected('OnFrontDisconnected', td).start()
     RegTdThreadOnRspUserLogin('OnRspUserLogin', td).start()
     RegTdThreadOnRspUserLogout('OnRspUserLogout', td).start()
+    RegTdThreadOnRspQryTradingAccount('OnRspQryTradingAccount', td).start()
 
     time.sleep(1)
     td.InitTD()
 
-    ret = td.Login()  # 调用交易接口元素，通过 “ 接口变量.元素（接口类内部定义的方法或变量） ” 形式调用
-    # Login()，不需要参数，Login读取QuickLibTD.ini的配置信息，并登录
+    # 调用交易接口元素，通过 “ 接口变量.元素（接口类内部定义的方法或变量） ” 形式调用
+    # Login()，不需要参数，Login读取TD.ini的配置信息，并登录
     # 返回0， 表示登录成功，
     # 返回1， FutureTDAccount.ini错误
     # 返回2， 登录超时
-    if ret == 0:
-        log_todaytd('登陆交易成功')
+    if td.Login() == 0:
+        log_todaytd('发送登录交易服务器请求成功')
     else:
-        log_todaytd('登陆交易失败')
+        log_todaytd('发送登录交易服务器请求失败，请检查vnctptd.ini配置文件是否配置正确')
 
     # 持仓数据在后台更新时，参数True为显示持仓状态，False为不显示持仓状态（仅对控制台有效）
     td.SetShowPosition(True)
@@ -243,11 +253,26 @@ def function_md(md, tname):
     # 返回0， 表示登录成功，
     # 返回1， FutureTDAccount.ini错误
     # 返回2， 登录超时
+    # 第一次是自动登录，退出登录后，如需再登陆，需添加以下登陆代码
+    # 调用交易接口元素，通过 “ 接口变量.元素（接口类内部定义的方法或变量） ” 形式调用
+    # Login()，不需要参数，Login读取QuickLibTD.ini的配置信息，并登录
+    # 返回0， 表示登录成功，
+    # 返回1， FutureTDAccount.ini错误
+    # 返回2， 登录超时
+    # print ('login: ', retLogin)
+
+    #if md.Login() == 0:
+    if md.ReqUserLogin() == 0:
+        log_todaytd('发送登录行情服务器请求成功')
+    else:
+        log_todaytd('发送登录行情服务器请求失败，请检查vnctpmd.ini配置文件是否配置正确')
+    # 若登录成功，会触发 OnRspUserLogin 回调
+    # 若登录失败，会触发 OnRspUserLogout 回调
+    # 登录成功后，就可以执行情订阅等操作了，所以行情订阅放置在OnRspUserLogin()中执行
 
     # 设置拒绝接收行情服务器数据的时间，有时候（特别是模拟盘）在早晨6-8点会发送前一天的行情数据，若不拒收的话，会导致历史数据错误，本方法最多可以设置4个时间段进行拒收数据
     # md.SetRejectdataTime(0.0400, 0.0840, 0.1530, 0.2030, NULL, NULL, NULL, NULL);
 
-    md.SubscribeMarketData(u'rb2110')  # 订阅品种zn1610，接收Tick数据,不根据Tick生成其他周期价格数据,但可根据AddPeriod函数添加周期价格数据的设置
 
     # main()函数内的以上部分代码只执行一次，以下while(1)循环内的代码，会一直循环执行，可在这个循环内需增加策略判断，达到下单条件即可下单
 
@@ -259,18 +284,8 @@ def function_md(md, tname):
     # md.Logout()
     # md.SubscribeMarketData(u'rb2110')
     # time.sleep(1)  # 系统休眠0.1秒
-    # 第一次是自动登录，退出登录后，如需再登陆，需添加以下登陆代码
-    ret = md.ReqUserLogin()  # 调用交易接口元素，通过 “ 接口变量.元素（接口类内部定义的方法或变量） ” 形式调用
-    # Login()，不需要参数，Login读取QuickLibTD.ini的配置信息，并登录
-    # 返回0， 表示登录成功，
-    # 返回1， FutureTDAccount.ini错误
-    # 返回2， 登录超时
-    # print ('login: ', retLogin)
-    if ret == 0:
-        log_todaymd('登陆行情服务器成功')
-    else:
-        log_todaymd('登陆行情服务器失败')
-        # ui.table_strategy
+
+
     return
     # 重新订阅行情
     # md.Subcribe(u'rb1810')

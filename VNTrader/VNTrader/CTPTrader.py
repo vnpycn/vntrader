@@ -175,6 +175,12 @@ class CTPTrader(object):
         CMPFUNC = CFUNCTYPE(None, c_void_p)
         self.vntd.VNRegOnFrontDisconnected(CMPFUNC(self.OnFrontDisconnected))
 
+    # 注册Python的OnRspQryTradingAccount回调函数指针，对应CTP c++的OnRspQryTradingAccount方法
+    def VNRegOnRspQryTradingAccount(self):
+        CMPFUNC = CFUNCTYPE(None, c_void_p)
+        self.vntd.VNRegOnRspQryTradingAccount(CMPFUNC(self.OnFrontDisconnected))
+
+
 
     def InitTD(self):
         self.fInitTD()

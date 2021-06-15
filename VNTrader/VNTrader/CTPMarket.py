@@ -496,7 +496,7 @@ class CTPMarket(object):
         pass
 
     #登录回调
-    def OnRspUserLogin(self, ui):
+    def OnRspUserLogin(self,a):
         pass
 
     #退出登录回调
@@ -504,7 +504,7 @@ class CTPMarket(object):
         pass
 
     # 建立连接回调
-    def OnFrontConnected(self,ui):
+    def OnFrontConnected(self):
         pass
 
     # 断开连接回调
@@ -523,7 +523,7 @@ class CTPMarket(object):
 
     # 注册Python的OnRspUserLogout回调函数指针，对应CTP c++的OnRspUserLogout方法
     def VNRegOnRspUserLogout(self):
-        CMPFUNC = CFUNCTYPE(None, POINTER(VNDepMarketData))
+        CMPFUNC = CFUNCTYPE(None, POINTER(VNCThostFtdcRspUserLoginField))
         self.vnmd.VNRegOnRspUserLogout(CMPFUNC(self.OnRspUserLogout))
 
     # 注册Python的OnRspSubMarketData回调函数指针，对应CTP c++的OnRspSubMarketData方法
