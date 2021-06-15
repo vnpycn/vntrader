@@ -496,7 +496,7 @@ class CTPMarket(object):
         pass
 
     #登录回调
-    def OnRspUserLogin(self, a):
+    def OnRspUserLogin(self, ui):
         pass
 
     #退出登录回调
@@ -504,7 +504,7 @@ class CTPMarket(object):
         pass
 
     # 建立连接回调
-    def OnFrontConnected(self):
+    def OnFrontConnected(self,ui):
         pass
 
     # 断开连接回调

@@ -26,26 +26,31 @@ from CTPTrader import *
 import time
 from threading import Thread
 
-
+global ui
+ui = example_ui.Ui_MainWindow()
 class MyCTPTrade(CTPTrader):
     # 登录回调
     def OnRspUserLogin(self, a):
         # print(a.contents.a1, a.contents.a2)
-        print(u'my OnRspUserLogin(Python)')
-        self.SubscribeMarketData('rb2110')
+        print(u'td OnRspUserLogin(Python)')
+        #self.SubscribeMarketData('rb2110')
+        log_todaytd('OnRspUserLogin', ui)
 
     # 退出登录回调
     def OnRspUserLogout(self, a):
         print(a.contents.a1, a.contents.a2)
-        print(u'my OnRspUserLogout(Python)')
+        print(u'td OnRspUserLogout(Python)')
+        log_todaytd('OnRspUserLogout', ui)
 
     # 建立连接回调
     def OnFrontConnected(self):
-        print("my OnFrontConnected(Python)")
+        print("td OnFrontConnected(Python)")
+        log_todaytd('OnFrontConnected', ui)
 
     # 断开连接回调
     def OnFrontDisconnected(self, a):
-        print("my OnFrontDisconnected(Python)")
+        print("td OnFrontDisconnected(Python)")
+        log_todaytd('OnFrontDisconnected', ui)
 
 
 # MyCTPMarket类继承自CTPMarket类
@@ -54,35 +59,36 @@ class MyCTPMarket(CTPMarket):
     # 行情回调
     def OnRtnDepthMarketData(self, a):
         print(a.InstrumentID)
-        print(u'my OnRtnDepthMarketData(Python)')
+        print(u'md OnRtnDepthMarketData(Python)')
+        log_todaymd('OnRtnDepthMarketData', ui)
 
     # 合约订阅回调
     def OnRspSubMarketData(self, a):
         print(a.contents.a1, a.contents.a2)
-        print(u'my OnRspSubMarketData(Python)')
+        print(u'md OnRspSubMarketData(Python)')
+        log_todaymd('OnRspSubMarketData', ui)
 
     # 登录回调
-    def OnRspUserLogin(self, a):
+    def OnRspUserLogin(self, ui):
         # print(a.contents.a1, a.contents.a2)
-        print(u'my OnRspUserLogin(Python)')
-        self.SubscribeMarketData('rb2110')
+        print(u'md OnRspUserLogin(Python)')
+        log_todaymd('OnRspUserLogin', ui)
+        #self.SubscribeMarketData('rb2110')
 
     # 退出登录回调
     def OnRspUserLogout(self, a):
         print(a.contents.a1, a.contents.a2)
-        print(u'my OnRspUserLogout(Python)')
-
+        print(u'md OnRspUserLogout(Python)')
+        log_todaymd('OnRspUserLogout', ui)
     # 建立连接回调
     def OnFrontConnected(self):
-        print("my OnFrontConnected(Python)")
+        print("md OnFrontConnected(Python2)")
+        log_todaymd('OnFrontConnected',ui)
 
     # 断开连接回调
     def OnFrontDisconnected(self, a):
-        print("my OnFrontDisconnected(Python)")
-
-
-
-
+        print("md OnFrontDisconnected(Python)")
+        log_todaymd('OnFrontDisconnected',ui)
 
 class RegThreadOnFrontConnected(Thread):
     def __init__(self, name, point):
@@ -156,13 +162,12 @@ def function_td(ui, td, tname):
     time.sleep(1)
     td.InitTD()
 
-    retlogin = td.Login()  # 调用交易接口元素，通过 “ 接口变量.元素（接口类内部定义的方法或变量） ” 形式调用
+    ret = td.Login()  # 调用交易接口元素，通过 “ 接口变量.元素（接口类内部定义的方法或变量） ” 形式调用
     # Login()，不需要参数，Login读取QuickLibTD.ini的配置信息，并登录
     # 返回0， 表示登录成功，
     # 返回1， FutureTDAccount.ini错误
     # 返回2， 登录超时
-    print('login: ', retlogin)
-    if retlogin == 0:
+    if ret == 0:
         log_todaytd('登陆交易成功', ui)
     else:
         log_todaytd('登陆交易失败', ui)
@@ -198,9 +203,6 @@ def function_md(ui, md, tname):
 
     md.InitMD()
 
-
-
-
     # md.RegisterFront()
     # Login()，不需要参数，Login读取QuickLibTD.ini的配置信息，并登录
     # 返回0， 表示登录成功，
@@ -230,10 +232,8 @@ def function_md(ui, md, tname):
     # 返回2， 登录超时
     # print ('login: ', retLogin)
     if ret == 0:
-        print(u'登陆行情服务器成功')
         log_todaymd('登陆行情服务器成功', ui)
     else:
-        print(u'登陆行情服务器失败')
         log_todaymd('登陆行情服务器失败', ui)
         # ui.table_strategy
     return
@@ -262,7 +262,7 @@ def main():
     window = QtWidgets.QMainWindow()
 
     # setup ui
-    ui = example_ui.Ui_MainWindow()
+    #ui = example_ui.Ui_MainWindow()
     ui.setupUi(window)
 
     class MDThread(threading.Thread):
@@ -272,6 +272,7 @@ def main():
             self.tname = tname
         def run(self):
             md = MyCTPMarket()
+            md.ui = ui
             function_md(ui, md, self.tname)
 
     class TDThread(threading.Thread):
@@ -281,6 +282,7 @@ def main():
             self.tname = tname
         def run(self):
             td = MyCTPTrade()
+            td.ui = ui
             function_td(ui, td,self.tname)
 
     """
