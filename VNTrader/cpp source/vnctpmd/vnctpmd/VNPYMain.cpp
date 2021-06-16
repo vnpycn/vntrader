@@ -28,16 +28,71 @@ using namespace std;
 typedef map<string, PERIODTYPE> QS_Strategy_Map2;
 QS_Strategy_Map2 * mapInstrument = new QS_Strategy_Map2;
 
-void(*OnFrontConnectedCallback)();
-void(*OnFrontDisconnectedCallback)(int *a);
-void(*OnRspUserLoginCallback)();
-void(*OnRspUserLogoutCallback)();
-void(*OnRspSubMarketDataCallback)(const int* a);
-void(*OnRspUnSubMarketDataCallback)();
-void(*OnRtnDepthMarketDataCallback)(const CThostFtdcDepthMarketDataField* a);
+
+
+/*
+list <cmdcontent> cmdlist;
+list <cmdcontent>::iterator cmd_Iter;
+
+list <TThostFtdcInstrumentIDTypeStruct> ticknamelist;
+list <TThostFtdcInstrumentIDTypeStruct>::iterator tickname_Iter;
+
+list <CThostFtdcRspInfoField> errorlist;
+list <CThostFtdcRspInfoField>::iterator error_Iter;
+
+list <CThostFtdcRspUserLoginField> loginlist;
+list <CThostFtdcRspUserLoginField>::iterator login_Iter;
+
+list <CThostFtdcRspUserLoginField> loginfailelist;
+list <CThostFtdcRspUserLoginField>::iterator loginfaile_Iter;
+
+list <CThostFtdcUserLogoutField> loginoutlist;
+list <CThostFtdcUserLogoutField>::iterator loginout_Iter;
+
+list <int> connectlist;
+list <int>::iterator connect_Iter;
+
+list <CThostFtdcSpecificInstrumentField> subMarketlist;
+list <CThostFtdcSpecificInstrumentField>::iterator subMarket_Iter;
+
+list <CThostFtdcSpecificInstrumentField> unsubMarketlist;
+list <CThostFtdcSpecificInstrumentField>::iterator unsubMarket_Iter;
+
+list <CThostFtdcForQuoteRspField> forquotelist;
+list <CThostFtdcForQuoteRspField>::iterator forquote_Iter;
+*/
+
+
+//#define LOG_LENGTH    100
+//struct LOGSTRUCT
+//{
+//	char log[LOG_LENGTH];
+//};
+//list <LOGSTRUCT> loglist;
+//list <LOGSTRUCT>::iterator log_Iter;
+
+
 
 
  
+void LOG(char * msg)
+{
+	/*
+	LOGSTRUCT tn;
+
+	memset(&tn, 0, sizeof(LOGSTRUCT));
+	_snprintf_s(tn.log, sizeof(tn.log), sizeof(tn.log), "%s", msg);
+	EnterCriticalSection(&g_csdata);
+	loglist.push_back(tn);
+	LeaveCriticalSection(&g_csdata);
+	SetEvent(hEvent[EID_OnLog]);
+
+	*/
+}
+
+
+
+
 
 #define WIN32_LEAN_AND_MEAN
 #include <stdio.h>
@@ -2022,7 +2077,7 @@ bool  AddPeriodType2(const char *InstrumentID, int  periodtype)
 	{
 	 
 		_snprintf_s(str,100,100,"%s", InstrumentID);
-		//LOG(str);
+		LOG(str);
 		//printf("*************没找到该合约的%s\n", InstrumentID);
 		//GuestOnlineHash value;
 		//InitGuestOnlineHash(&value);
@@ -2049,67 +2104,77 @@ bool  AddPeriodType2(const char *InstrumentID, int  periodtype)
 			//printf("%s加入M1,M3,M5,M10,M15,M30,M60,D1周期\n", InstrumentID);
 
 			_snprintf_s(str, 100, 100, "%s加入M1,M3,M5,M10,M15,M30,M60,D1周期", InstrumentID);
- 			break;
+			LOG(str);
+			break;
 		case QL_M1:
 			q->period_M1 = true;
 			//printf("%s加入M1周期\n", InstrumentID);
 			
 			_snprintf_s(str, 100, 100, "%s加入M1周期", InstrumentID);
- 			break;
+			LOG(str);
+			break;
 		case QL_M3:
 			q->period_M3 = true;
 			//printf("%s加入M3周期\n", InstrumentID);
 			//char str[100];
 			_snprintf_s(str, 100, 100, "%s加入M3周期", InstrumentID);
- 			break;
+			LOG(str);
+			break;
 		case QL_M5:
 			q->period_M5 = true;
 			//printf("%s加入M5周期\n", InstrumentID);
 			//char str[100];
 			_snprintf_s(str, 100, 100, "%s加入M5周期", InstrumentID);
- 			break;
+			LOG(str);
+			break;
 
 		case QL_M10:
 			q->period_M10 = true;
 			//printf("%s加入M10周期\n", InstrumentID);
 			//char str[100];
 			_snprintf_s(str, 100, 100, "%s加入M10周期", InstrumentID);
- 			break;
+			LOG(str);
+			break;
 
 		case QL_M15:
 			q->period_M15 = true;
 			//printf("%s加入M15周期\n", InstrumentID);
 			//char str[100];
 			_snprintf_s(str, 100, 100, "%s加入M15周期", InstrumentID);
- 			break;
+			LOG(str);
+			break;
 
 		case QL_M30:
 			q->period_M30 = true;
 			//printf("%s加入M30周期\n", InstrumentID);
 			//char str[100];
 			_snprintf_s(str, 100, 100, "%s加入M30周期", InstrumentID);
- 			break;
+			LOG(str);
+			break;
 
 		case QL_M60:
 			q->period_M60 = true;
 			//printf("%s加入M60周期\n", InstrumentID);
 			//char str[100];
 			_snprintf_s(str, 100, 100, "%s加入M60周期", InstrumentID);
- 			break;
+			LOG(str);
+			break;
 
 		case QL_M120:
 			q->period_M120 = true;
 			//printf("%s加入M120周期\n", InstrumentID);
 			//char str[100];
 			_snprintf_s(str, 100, 100, "%s加入M120周期", InstrumentID);
- 			break;
+			LOG(str);
+			break;
 
 		case QL_D1:
 			q->period_D1 = true;
 			//printf("%s加入D1周期\n", InstrumentID);
 			//char str[100];
 			_snprintf_s(str, 100, 100, "%s加入D1周期", InstrumentID);
- 			break;
+			LOG(str);
+			break;
 		}
 	}
 	return true;
@@ -2123,7 +2188,8 @@ void AddPeriod(const char *InstrumentID, int periodtype,bool printfdata)
 		//printf("添加[%s]周期(由Tick生成周期数据供指标调用)：", InstrumentID);
 		char str[100];
 		_snprintf_s(str, 100, 100, "添加[%s]周期(由Tick生成周期数据供指标调用)", InstrumentID);
- 	   switch (periodtype)
+		LOG(str);
+	   switch (periodtype)
 	  {
 	  case QL_ALL:
 		  printf("M1、M3、M5、M10、M15、M30、M60、M120、D1 ");
@@ -2444,27 +2510,57 @@ void VN_EXPORT SetPrintState(bool printfstate)
 
  
 
- 
+void  test()
+{
+
+
+	while (1)
+	{
+		cout << "start\n" << endl;
+
+		Sleep(10000);
+		SetEvent(hEvent[EID_OnFrontConnected]);
+		// SetEvent(hEvent[EID_IsErrorRspInfo]);
+
+		cout << "end\n" << endl;
+
+	}
+
+}
+
+
  
 
 void   VNRegOnRtnDepthMarketData(void(*outputCallback)(const CThostFtdcDepthMarketDataField* a))
 {
- 
- 
- 
+	hEvent[EID_OnRtnDepthMarketData] = CreateEvent(NULL, FALSE, FALSE, "EID_OnRtnDepthMarketData");
+	ResetEvent(hEvent[EID_OnRtnDepthMarketData]);
+	while (1)
+	{
+		ResetEvent(hEvent[EID_OnRtnDepthMarketData]);
+		WaitForSingleObject(hEvent[EID_OnRtnDepthMarketData], INFINITE);
  
 		CThostFtdcDepthMarketDataField  a;
 		memset(&a,0,sizeof(CThostFtdcDepthMarketDataField));
 
 		outputCallback(&a);
- 
+		/*
+		time_t t = time(0);
+		char tmp[64];
+		strftime(tmp, sizeof(tmp), "%Y/%m/%d %X %A %j  %z", localtime(&t));
+		puts(tmp);
+		*/
+	}
 }
 
 void   VNRegOnRspUserLogin(void(*outputCallback)(const CThostFtdcRspUserLoginField* a))
 {
- 
- 
- 
+	hEvent[EID_OnRspUserLogin] = CreateEvent(NULL, FALSE, FALSE, "EID_OnRspUserLogin");
+	ResetEvent(hEvent[EID_OnRspUserLogin]);
+	while (1)
+	{
+		ResetEvent(hEvent[EID_OnRspUserLogin]);
+		WaitForSingleObject(hEvent[EID_OnRspUserLogin], INFINITE);
 
 		CThostFtdcRspUserLoginField   a ;
 		memset(&a, 0, sizeof(CThostFtdcRspUserLoginField));
@@ -2472,85 +2568,114 @@ void   VNRegOnRspUserLogin(void(*outputCallback)(const CThostFtdcRspUserLoginFie
 		_snprintf_s(a.UserID, sizeof(a.UserID), sizeof(a.UserID) - 1, "%s", gInvestorID.c_str());
  
 		outputCallback(&a);
- 
-}
-void   VNRegOnRspUserLogout(void(*outputCallback)( ))
-{
- 
-	OnRspUserLogoutCallback = outputCallback;
-
-		//outputCallback(&a);
-  
-}
-void   VNRegOnRspUnSubMarketData(void(*outputCallback)(const int* a))
-{
- 
- 
- 
-
-	//	int a = 1;
-		//outputCallback(&a);
- 
-}
-
-void   VNRegOnRspSubMarketData(void(*outputCallback)(const int* a))
-{
- 
- 
-	OnRspSubMarketDataCallback = outputCallback;
-
-		//int a = 1;
-		//outputCallback(&a);
 		/*
 		time_t t = time(0);
 		char tmp[64];
 		strftime(tmp, sizeof(tmp), "%Y/%m/%d %X %A %j  %z", localtime(&t));
 		puts(tmp);
 		*/
- 
+	}
+}
+void   VNRegOnRspUserLogout(void(*outputCallback)(const int* a))
+{
+	hEvent[EID_OnRspUserLogout] = CreateEvent(NULL, FALSE, FALSE, "EID_OnRspUserLogout");
+	ResetEvent(hEvent[EID_OnRspUserLogout]);
+	while (1)
+	{
+		ResetEvent(hEvent[EID_OnRspUserLogout]);
+		WaitForSingleObject(hEvent[EID_OnRspUserLogout], INFINITE);
+
+		int a=1;
+		outputCallback(&a);
+		/*
+		time_t t = time(0);
+		char tmp[64];
+		strftime(tmp, sizeof(tmp), "%Y/%m/%d %X %A %j  %z", localtime(&t));
+		puts(tmp);
+		*/
+	}
+}
+void   VNRegOnRspUnSubMarketData(void(*outputCallback)(const int* a))
+{
+	hEvent[EID_OnRspUnSubMarketData] = CreateEvent(NULL, FALSE, FALSE, "EID_OnRspUnSubMarketData");
+	ResetEvent(hEvent[EID_OnRspUnSubMarketData]);
+	while (1)
+	{
+		ResetEvent(hEvent[EID_OnRspUnSubMarketData]);
+		WaitForSingleObject(hEvent[EID_OnRspUnSubMarketData], INFINITE);
+
+		int a = 1;
+		outputCallback(&a);
+		/*
+		time_t t = time(0);
+		char tmp[64];
+		strftime(tmp, sizeof(tmp), "%Y/%m/%d %X %A %j  %z", localtime(&t));
+		puts(tmp);
+		*/
+	}
+}
+
+void   VNRegOnRspSubMarketData(void(*outputCallback)(const int* a))
+{
+	hEvent[EID_OnRspSubMarketData] = CreateEvent(NULL, FALSE, FALSE, "EID_OnRspSubMarketData");
+	ResetEvent(hEvent[EID_OnRspSubMarketData]);
+	while (1)
+	{
+		ResetEvent(hEvent[EID_OnRspSubMarketData]);
+		WaitForSingleObject(hEvent[EID_OnRspSubMarketData], INFINITE);
+
+		int a = 1;
+		outputCallback(&a);
+		/*
+		time_t t = time(0);
+		char tmp[64];
+		strftime(tmp, sizeof(tmp), "%Y/%m/%d %X %A %j  %z", localtime(&t));
+		puts(tmp);
+		*/
+	}
 }
 extern HANDLE hEvent[MAX_EVENTNUM];
 
 
 
 
-
-DWORD WINAPI PositionThreadProc(void* p)	//更新排名
-{
-	while (true)
-	{
-		cout << "start" << endl;
-		if (*OnFrontConnectedCallback)
-			     OnFrontConnectedCallback();
-		//else
-			cout << "NULL" << endl;
-		Sleep(1);
-	}
-}
 void  VNRegOnFrontConnected(void(*outputCallback)())
 {
-	 //while (1)
-	// {
-		// outputCallback();
-		 OnFrontConnectedCallback = outputCallback;
-
-		// Sleep(500);
-		// ::CreateThread(NULL, 0, PositionThreadProc, NULL, 0, NULL);
+	hEvent[EID_OnFrontConnected] = CreateEvent(NULL, FALSE, FALSE, "EID_OnFrontConnected");
+	 //thread t(test);
  
-		// Sleep(1);
-	// }
+	 while (1)
+	 {
+		 ResetEvent(hEvent[EID_OnFrontConnected]);
+		 WaitForSingleObject(hEvent[EID_OnFrontConnected], INFINITE);
+		 outputCallback();
+		 /*
+		 time_t t = time(0);
+		 char tmp[64];
+		 strftime(tmp, sizeof(tmp), "%Y/%m/%d %X %A %j  %z", localtime(&t));
+		 puts(tmp);
+		 */
+		 Sleep(1);
+	 }
  
 }
 
 void   VNRegOnFrontDisconnected(void(*outputCallback)(int *a))
 {
-	//while (1)
-	//{
-
-		//int a = 1;
-		//outputCallback(&a);
-		OnFrontDisconnectedCallback = outputCallback;
-
-	//}
+	hEvent[EID_OnFrontDisconnected] = CreateEvent(NULL, FALSE, FALSE, "EID_OnFrontDisconnected");
+	//thread t(test);
+	while (1)
+	{
+		ResetEvent(hEvent[EID_OnFrontDisconnected]);
+		WaitForSingleObject(hEvent[EID_OnFrontDisconnected], INFINITE);
+		int a = 1;
+		outputCallback(&a);
+		/*
+		time_t t = time(0);
+		char tmp[64];
+		strftime(tmp, sizeof(tmp), "%Y/%m/%d %X %A %j  %z", localtime(&t));
+		puts(tmp);
+		*/
+	}
 }
  

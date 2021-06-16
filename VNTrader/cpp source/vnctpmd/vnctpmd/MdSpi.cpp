@@ -18,18 +18,11 @@
 #include <iostream> 
 #include <windows.h>
 using namespace std;
-extern void(*OnFrontConnectedCallback)();
-extern void(*OnFrontDisconnectedCallback)(int *a);
-extern void(*OnRspUserLoginCallback)();
-extern void(*OnRspUserLogoutCallback)();
-extern void(*OnRspSubMarketDataCallback)(const int* a);
-extern void(*OnRspUnSubMarketDataCallback)();
-extern void(*OnRtnDepthMarketDataCallback)(const CThostFtdcDepthMarketDataField* a);
 
 
-CThostFtdcMdApi *mpUserApi = NULL;
+  CThostFtdcMdApi *mpUserApi = NULL;
 
- // extern HANDLE hEvent[MAX_EVENTNUM];
+  extern HANDLE hEvent[MAX_EVENTNUM];
 
 #pragma warning(disable : 4996)
 
@@ -5083,11 +5076,14 @@ void CMdSpi::OnRspError(CThostFtdcRspInfoField *pRspInfo,int nRequestID, bool bI
 void CMdSpi::OnFrontDisconnected(int nReason)
 {
 	cerr << "--->>> " << __FUNCTION__ << std::endl;
- 
-    
-	//if ((*OnFrontDisconnectedCallback ))
-	    	OnFrontDisconnectedCallback(&nReason);
- 
+	SetEvent(hEvent[EID_OnFrontDisconnected]);
+	/*
+	SYSTEMTIME t;
+	::GetLocalTime(&t);
+	std::cout << t.wHour << ":" << t.wMinute << ":" << t.wSecond << std::endl;
+	std::cout << "--->>> " << __FUNCTION__ << std::endl;
+	std::cout << "--->>> Reason = " << nReason << std::endl;
+	*/
 	::Beep(800, 10000);
 }
 
@@ -5106,9 +5102,7 @@ void CMdSpi::OnFrontConnected()
 {
 	cerr << "--->>> " << __FUNCTION__ << std::endl;
 
-
-	if (*OnFrontConnectedCallback)
-		   OnFrontConnectedCallback();
+	SetEvent(hEvent[EID_OnFrontConnected]);
     ///用户登录请求
 	ReqUserLogin();	  
  
@@ -5180,7 +5174,8 @@ void CMdSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,CThostFtd
 		cerr << "TradeingDay: " << mpUserApi->GetTradingDay() << endl;
 		mInitOK = TRUE;
 
- 
+	SetEvent(hEvent[EID_OnRspUserLogin]);
+
 	if (pRspInfo && pRspInfo->ErrorID != 0)
 	{
 			printf("登录失败,ErrorID=0x%04x, ErrMsg=%s\n", pRspInfo->ErrorID, pRspInfo->ErrorMsg);
@@ -5192,10 +5187,6 @@ void CMdSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,CThostFtd
 	}
 	else
 	{
-		if (*OnRspUserLoginCallback)
-			OnRspUserLoginCallback();
-
-
 			printf("登录成功\n");
 			Sleep(3000);
 	}
@@ -5559,9 +5550,8 @@ void CMdSpi::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *pDepthMarketDa
 	{
 		return;
 	}
- 
-	if (*OnRtnDepthMarketDataCallback)
-		 OnRtnDepthMarketDataCallback(pDepthMarketData);
+	SetEvent(hEvent[EID_OnRtnDepthMarketData]);
+
 	return;
 	//本机时间过滤
 	double Nowtime = GetLocalTimeSec2();
@@ -5694,16 +5684,15 @@ bool CMdSpi::IsErrorRspInfo(CThostFtdcRspInfoField *pRspInfo)
 ///订阅行情应答
 void  CMdSpi::OnRspSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
-	if (*OnRspSubMarketDataCallback)
-		OnRspSubMarketDataCallback(0);
+	SetEvent(hEvent[EID_OnRspSubMarketData]);
 
 };
 
 ///取消订阅行情应答
 void  CMdSpi::OnRspUnSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
-{ 
-	if (*OnRspUnSubMarketDataCallback)
-		OnRspUnSubMarketDataCallback();
+{
+	SetEvent(hEvent[EID_OnRspUnSubMarketData]);
+
 };
 
 ///询价通知
@@ -5715,6 +5704,7 @@ void  CMdSpi::OnRtnForQuoteRsp(CThostFtdcForQuoteRspField *pForQuoteRsp)
 ///登出请求响应
 void CMdSpi::OnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
-	if (*OnRspUserLogoutCallback)
-		OnRspUserLogoutCallback();
+	SetEvent(hEvent[EID_OnRspUserLogout]);
+
+
 }

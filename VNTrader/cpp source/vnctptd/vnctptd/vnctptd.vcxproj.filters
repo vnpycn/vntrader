@@ -13,9 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
     </Filter>
-    <Filter Include="gzip">
-      <UniqueIdentifier>{1b546cac-1e0c-4e8a-aadc-f9a0bf1ab46e}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -23,36 +20,6 @@
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="gzip\trees.c">
-      <Filter>gzip</Filter>
-    </ClCompile>
-    <ClCompile Include="gzip\uncompr.c">
-      <Filter>gzip</Filter>
-    </ClCompile>
-    <ClCompile Include="gzip\zutil.c">
-      <Filter>gzip</Filter>
-    </ClCompile>
-    <ClCompile Include="gzip\adler32.c">
-      <Filter>gzip</Filter>
-    </ClCompile>
-    <ClCompile Include="gzip\compress.c">
-      <Filter>gzip</Filter>
-    </ClCompile>
-    <ClCompile Include="gzip\crc32.c">
-      <Filter>gzip</Filter>
-    </ClCompile>
-    <ClCompile Include="gzip\deflate.c">
-      <Filter>gzip</Filter>
-    </ClCompile>
-    <ClCompile Include="gzip\inffast.c">
-      <Filter>gzip</Filter>
-    </ClCompile>
-    <ClCompile Include="gzip\inflate.c">
-      <Filter>gzip</Filter>
-    </ClCompile>
-    <ClCompile Include="gzip\inftrees.c">
-      <Filter>gzip</Filter>
     </ClCompile>
     <ClCompile Include="inifile.cpp">
       <Filter>Source Files</Filter>
@@ -70,36 +37,6 @@
     </ClInclude>
     <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="gzip\inftrees.h">
-      <Filter>gzip</Filter>
-    </ClInclude>
-    <ClInclude Include="gzip\trees.h">
-      <Filter>gzip</Filter>
-    </ClInclude>
-    <ClInclude Include="gzip\zconf.h">
-      <Filter>gzip</Filter>
-    </ClInclude>
-    <ClInclude Include="gzip\zlib.h">
-      <Filter>gzip</Filter>
-    </ClInclude>
-    <ClInclude Include="gzip\zutil.h">
-      <Filter>gzip</Filter>
-    </ClInclude>
-    <ClInclude Include="gzip\crc32.h">
-      <Filter>gzip</Filter>
-    </ClInclude>
-    <ClInclude Include="gzip\deflate.h">
-      <Filter>gzip</Filter>
-    </ClInclude>
-    <ClInclude Include="gzip\inffast.h">
-      <Filter>gzip</Filter>
-    </ClInclude>
-    <ClInclude Include="gzip\inffixed.h">
-      <Filter>gzip</Filter>
-    </ClInclude>
-    <ClInclude Include="gzip\inflate.h">
-      <Filter>gzip</Filter>
     </ClInclude>
     <ClInclude Include="IniFile.h">
       <Filter>Header Files</Filter>

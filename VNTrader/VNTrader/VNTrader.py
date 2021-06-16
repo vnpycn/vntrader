@@ -45,11 +45,26 @@ class MyCTPTrade(CTPTrader):
     def OnFrontConnected(self):
         print("连接交易服务器成功OnFrontConnected")
         log_todaytd('连接交易服务器成功OnFrontConnected')
-
+        '''
+        if self.ReqUserLogin() == 0:
+            log_todaytd('发送登录交易服务器请求成功')
+        else:
+            log_todaytd('发送登录交易服务器请求失败')
+        '''
     # 断开连接回调
     def OnFrontDisconnected(self, a):
         print("断开与交易服务器连接OnFrontDisconnected")
         log_todaytd('断开与交易服务器连接OnFrontDisconnected')
+
+    # 请求查询投资者持仓响应
+    def OnRspQryInvestorPosition(self, a):
+        print("请求查询投资者持仓响应OnRspQryInvestorPosition")
+        log_todaytd('请求查询投资者持仓响应OnRspQryInvestorPosition')
+
+    # 账户资金回调
+    def OnRspQryTradingAccount(self, a):
+        print("账户资金回调OnRspQryTradingAccount")
+        log_todaytd('账户资金回调OnRspQryTradingAccount')
 
 # MyCTPMarket类继承自CTPMarket类
 class MyCTPMarket(CTPMarket):
@@ -83,6 +98,7 @@ class MyCTPMarket(CTPMarket):
         print("连接行情服务器成功OnFrontConnected")
         log_todaymd('连接行情服务器成功OnFrontConnected')
 
+
     # 断开连接回调
     def OnFrontDisconnected(self, a):
         print("断开与行情服务器连接OnFrontDisconnected")
@@ -90,99 +106,96 @@ class MyCTPMarket(CTPMarket):
 
 
 class RegTdThreadOnFrontConnected(Thread):
-    def __init__(self, name, point):
+    def __init__(self, name, td):
         super().__init__()
         self.name = name
-        self.point = point
+        self.td = td
     def run(self):  # 一定要叫这个名字，不能是别的
-        print('td %s is running\n' % self.name)
-        self.point.VNRegOnFrontConnected()
+        self.td.VNRegOnFrontConnected()
 
 class RegTdThreadOnFrontDisconnected(Thread):
-    def __init__(self, name, point):
+    def __init__(self, name, td):
         super().__init__()
         self.name = name
-        self.point=point
+        self.td=td
     def run(self):  # 一定要叫这个名字，不能是别的
-        print('td %s is running\n' % self.name)
-        self.point.VNRegOnFrontDisconnected()
+        self.td.VNRegOnFrontDisconnected()
 
 class RegTdThreadOnRspUserLogin(Thread):
-    def __init__(self, name, point):
+    def __init__(self, name, td):
         super().__init__()
         self.name = name
-        self.point=point
+        self.td=td
     def run(self):  # 一定要叫这个名字，不能是别的
-        print('td %s is running\n' % self.name)
-        self.point.VNRegOnRspUserLogin()
+        self.td.VNRegOnRspUserLogin()
 
 class RegTdThreadOnRspUserLogout(Thread):
-    def __init__(self, name, point):
+    def __init__(self, name, td):
         super().__init__()
         self.name = name
-        self.point=point
+        self.td=td
     def run(self):  # 一定要叫这个名字，不能是别的
-        print('td %s is running\n' % self.name)
-        self.point.VNRegOnRspUserLogout()
+        self.td.VNRegOnRspUserLogout()
 
+class RegTdThreadOnRspQryInvestorPosition(Thread):
+    def __init__(self, name, td):
+        super().__init__()
+        self.name = name
+        self.td=td
+    def run(self):  # 一定要叫这个名字，不能是别的
+        self.td.VNRegOnRspQryInvestorPosition()
 
 class RegTdThreadOnRspQryTradingAccount(Thread):
-    def __init__(self, name, point):
+    def __init__(self, name, td):
         super().__init__()
         self.name = name
-        self.point=point
+        self.td=td
     def run(self):  # 一定要叫这个名字，不能是别的
-        print('td %s is running\n' % self.name)
-        self.point.VNRegOnRspQryTradingAccount()
+        self.td.VNRegOnRspQryTradingAccount()
 #---------------------------------------
 
 
 class RegMdThreadOnFrontConnected(Thread):
-    def __init__(self, name, point):
+    def __init__(self, name, md):
         super().__init__()
         self.name = name
-        self.point = point
+        self.md = md
     def run(self):  # 一定要叫这个名字，不能是别的
-        print('md %s is running\n' % self.name)
-        self.point.VNRegOnFrontConnected()
+        self.md.VNRegOnFrontConnected()
 
 class RegMdThreadOnFrontDisconnected(Thread):
-    def __init__(self, name, point):
+    def __init__(self, name, md):
         super().__init__()
         self.name = name
-        self.point=point
+        self.md=md
     def run(self):  # 一定要叫这个名字，不能是别的
-        print('md %s is running\n' % self.name)
-        self.point.VNRegOnFrontDisconnected()
+        self.md.VNRegOnFrontDisconnected()
 
 #RegThreadTdOnRspUserLogin
 class RegMdThreadOnRspUserLogin(Thread):
-    def __init__(self, name, point):
+    def __init__(self, name, md):
         super().__init__()
         self.name = name
-        self.point=point
+        self.md=md
     def run(self):  # 一定要叫这个名字，不能是别的
-        print('md %s is running\n' % self.name)
-        self.point.VNRegOnRspUserLogin()
+        self.md.VNRegOnRspUserLogin()
 
 #RegThreadTdOnRspUserLogin
 class RegMdThreadOnRspUserLogout(Thread):
-    def __init__(self, name, point):
+    def __init__(self, name, md):
         super().__init__()
         self.name = name
-        self.point=point
+        self.md=md
     def run(self):  # 一定要叫这个名字，不能是别的
-        print('md %s is running\n' % self.name)
-        self.point.VNRegOnRspUserLogout()
+        self.md.VNRegOnRspUserLogout()
 
 class RegMdThreadOnRtnDepthMarketData(Thread):
-    def __init__(self, name, point):
+    def __init__(self, name, md):
         super().__init__()
         self.name = name
-        self.point=point
+        self.md=md
     def run(self):
-        print('md %s is running\n' % self.name)
-        self.point.VNRegOnRtnDepthMarketData()
+        self.md.VNRegOnRtnDepthMarketData()
 
 def log_todaytd(mystr):
     _translate = QtCore.QCoreApplication.translate
@@ -207,6 +220,15 @@ def function_td(td, tname):
     RegTdThreadOnRspUserLogout('OnRspUserLogout', td).start()
     RegTdThreadOnRspQryTradingAccount('OnRspQryTradingAccount', td).start()
 
+
+    RegTdThreadOnRspQryInvestorPosition('OnRspQryInvestorPosition', td).start()
+    RegTdThreadOnRspQryTradingAccount('OnRspQryInvestorPosition', td).start()
+
+
+
+
+
+
     time.sleep(1)
     td.InitTD()
     #if td.InitTD() != 0:
@@ -216,17 +238,19 @@ def function_td(td, tname):
     # 返回0， 表示登录成功，
     # 返回1， FutureTDAccount.ini错误
     # 返回2， 登录超时
+    '''
     if td.ReqUserLogin() == 0:
         log_todaytd('发送登录交易服务器请求成功')
     else:
         log_todaytd('发送登录交易服务器请求失败')
-
+    '''
     # 持仓数据在后台更新时，参数True为显示持仓状态，False为不显示持仓状态（仅对控制台有效）
     td.SetShowPosition(True)
 
     # 注意simnow模拟盘的交易服务器不稳定，经常会出现查询不到的情况。实盘账户绑定的交易服务器无此问题。
 
     while 1:  # 死循环，反复执行
+        '''
         # 如果值为-999999999（初始值），则表示尚未获得数据
         print(u'(1)动态权益：%0.02f' % td.QryBalance(True))
         print(u'(2)静态权益：%0.02f' % td.QryBalance(False))
@@ -237,6 +261,7 @@ def function_td(td, tname):
         print(u'(7)zn1701非今日多单持仓：%d' % td.QryPosition('rb1701', VN_POSITION_Buy_History))
 
         print('--------------------------------------------------------')
+        '''
         time.sleep(3)  # sleep1秒，防止死循环导致CPU占有率过高，1即可，不宜过大，若过大会导致程序进程长时间无响应，丢失行情数据
 
     pass

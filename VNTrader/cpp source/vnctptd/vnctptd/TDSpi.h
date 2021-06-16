@@ -10,7 +10,7 @@
 #pragma once
 extern HANDLE hEvent[MAX_EVENTNUM];
 
-extern CThostFtdcTraderApi *mpUserApi;
+extern CThostFtdcTraderApi *vntdapi;
 class CTDSpi: public CThostFtdcTraderSpi
 {
 public:
@@ -78,7 +78,7 @@ public:
 		///请求查询资金账户
 	int ReqQryTradingAccount();
 	///请求查询投资者持仓
-	void ReqQryInvestorPosition();
+	int ReqQryInvestorPosition();
  	///请求查询合约(乘数)
 	void ReqQryInstrument(char *Instrument);
 
@@ -120,7 +120,7 @@ public:
 
 	int DeleteOrder(char *InstrumentID, DWORD orderRef);
 
-	void ReqUserLogin();
+	int ReqUserLogin();
 
 	int ReqSettlementInfoConfirm();
 

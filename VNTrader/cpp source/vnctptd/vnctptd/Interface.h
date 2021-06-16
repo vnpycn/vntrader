@@ -34,11 +34,11 @@ extern "C" {
 
 	//void VN_EXPORT VNRegOnRspSubMarketData(void(*outputCallback)(const int* a));
 
-	void VN_EXPORT VNRegOnRspQryTradingAccount(void(*outputCallback)(const int* a));
-
 	void VN_EXPORT VNRegOnRspQryInvestorPosition(void(*outputCallback)(const int* a));
 
+	void VN_EXPORT VNRegOnRspQryTradingAccount(void(*outputCallback)(const int* a));
 
+ 
     int VN_EXPORT InitTD();
 
 

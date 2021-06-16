@@ -19,15 +19,14 @@ std::string gInvestorID;
 std::string gPassword;
 std::string gAppID;
 std::string gAuthCode;
-std::string gProductInfo;
+std::string gUserProductInfo;
 
 
 HANDLE ghTradedVolMutex = NULL;
 std::map<int, int> gOrderRef2TradedVol;
 
-CTDSpi gTraderSpi;
-
 bool showpositionstate=false;
+extern CTDSpi *vntdspi;
 
 
 HANDLE hEvent[MAX_EVENTNUM] =
@@ -53,7 +52,6 @@ void Start()
 			_snprintf_s(temp, sizeof(temp), sizeof(temp), "hEvent%d", i);
 			hEvent[i] = CreateEvent(NULL, FALSE, FALSE, temp);
 		}
-
 	}
 	//InitializeCriticalSection(&g_csdata);
 	ghTradedVolMutex = ::CreateMutex(NULL, FALSE, NULL);
@@ -72,25 +70,7 @@ void End()
 
 int ReqUserLogin()
 {
-/*
-	printf("BrokerID：%s\n", gBrokerID.c_str());
-	printf("InvestorID：%s\n", gInvestorID.c_str());
-	printf("CTP TD Server IP1:%s\n", gFrontAddr[0].c_str());
-	printf("CTP TD Server IP2:%s\n", gFrontAddr[1].c_str());
-	printf("CTP TD Server IP3:%s\n", gFrontAddr[2].c_str());
- 
- */
-	
-	//bool ret = gTraderSpi.Init();
-	/*if (ret)
-	{
-		return 0;
-	}else
-	{
-		return 2;
-	}
-	*/
-	return 0;
+	return vntdspi->ReqUserLogin();
 }
 
 
@@ -116,10 +96,7 @@ extern int	Trade_dataA_Amount_S_History[TYPE_NUM];		//空单持仓
 
 extern double YestayAllAmount;
 extern double TodayAllAmount;
-extern double UserAmount;
-
-
-
+extern double Available;
 
 extern std::map<std::string, int> gPosition_S;
 extern std::map<std::string, int> gPosition_B;
@@ -144,10 +121,6 @@ extern std::map<std::string, int> gTypeCheckState_B_History;
 
 #define RATETYPE_LONG     0
 #define RATETYPE_SHORT    1
-
-extern CTDSpi *mpUserSpi;
-
-
 
 
 int VN_EXPORT QryQueryMaxOrderVolume(char *BrokerID, char * InvestorID, char * Instrument, char * Direction, char * OffsetFlag, char * HedgeFlag, int MaxVolume)
@@ -182,10 +155,10 @@ int InsertOrderByRate(char *Instrument, char direction, char offsetFlag, char pr
 
 
 	printf("按开仓比例[%0.02f%%]下单手数[%d]\n", rate,num);
-
-	if (gTraderSpi.IsInitOK())
+	//2021
+	if (vntdspi->IsInitOK())
 	{
-		return gTraderSpi.InsertOrder(Instrument, direction, offsetFlag, priceType, price, num);
+		return vntdspi->InsertOrder(Instrument, direction, offsetFlag, priceType, price, num);
 	}
 	else
 	{
@@ -200,10 +173,10 @@ int InsertOrder(char *Instrument, char direction, char offsetFlag, char priceTyp
 		//<< offsetFlag << "\t" << priceType << "\t" << price << "\t"
 		//<< num << std::endl;
 	//printf("下单手数[%d]\n", num);
-
-	if (gTraderSpi.IsInitOK())
+	//2021
+	if (vntdspi->IsInitOK())
 	{
-		return gTraderSpi.InsertOrder(Instrument, direction, offsetFlag, priceType, price, num);
+		return vntdspi->InsertOrder(Instrument, direction, offsetFlag, priceType, price, num);
 	}
 	else
 	{
@@ -214,10 +187,10 @@ int InsertOrder(char *Instrument, char direction, char offsetFlag, char priceTyp
 int DeleteOrder(char *Instrument, int OrderRef)
 {
 	//std::cout << __FUNCTION__ << "\t" << OrderRef << std::endl;
-
-	if (gTraderSpi.IsInitOK())
+	//2021
+	if (vntdspi->IsInitOK())
 	{
-		return gTraderSpi.DeleteOrder(Instrument, OrderRef);
+		return vntdspi->DeleteOrder(Instrument, OrderRef);
 	}
 	else
 	{
@@ -240,11 +213,11 @@ int QryTradedVol(int OrderRef)
 //查询乘数
 double QryUnderlyingMultiple(char *Instrument)
 {
-	if (!mpUserSpi)
+	if (!vntdspi)
 	{
 		return -1; //未初始化完成
 	}
-	mpUserSpi->ReqQryInstrument(Instrument);//仓位管理		
+	vntdspi->ReqQryInstrument(Instrument);//仓位管理		
 
 	int num = 0;
 	while (num<30)
@@ -280,13 +253,13 @@ double QryUnderlyingMultiple(char *Instrument)
 //查询保证金率
 double QryExchangeMarginRate(char *Instrument,int type)
 {
-	if (!mpUserSpi)
+	if (!vntdspi)
 	{
 		return -1; //未初始化完成
 	}
-	mpUserSpi->ReqQryInstrumentMarginRate(Instrument);//仓位管理		
+	vntdspi->ReqQryInstrumentMarginRate(Instrument);//仓位管理		
 
-	//mpUserSpi->ReqQryInvestorProductGroupMargin(Instrument);//仓位管理	
+	//vntdspi->ReqQryInvestorProductGroupMargin(Instrument);//仓位管理	
 	
 	int num = 0;
 	while (num<30)
@@ -356,7 +329,7 @@ int  VN_EXPORT ReqQueryMaxOrderVolume(char * BrokerID,char * InvestorID,char * I
 	req.OffsetFlag = OffsetFlag;
 	req.HedgeFlag = HedgeFlag;
 	req.MaxVolume = MaxVolume;
-	return mpUserSpi->ReqQueryMaxOrderVolume(&req,1);//仓位管理		
+	return vntdspi->ReqQueryMaxOrderVolume(&req,1);//仓位管理		
 }
 
 
@@ -366,7 +339,7 @@ int  VN_EXPORT ReqQryContractBank()
 	memset(&req,0,sizeof(CThostFtdcQryContractBankField));
 	strcpy_s(req.BrokerID,sizeof(TThostFtdcBrokerIDType), gBrokerID.c_str());
 	//strncpy_s(tn.BrokerID, sizeof(tn.BrokerID), BrokerID, sizeof(tn.BrokerID));
-	return mpUserSpi->ReqQryContractBank(&req, 1);//仓位管理		
+	return vntdspi->ReqQryContractBank(&req, 1);//仓位管理		
 }
 
 
@@ -533,8 +506,8 @@ int  VN_EXPORT  ReqFromBankToFutureByFuture(char * BankID,char *  BrokerBranchID
 	//req.TID;  
 	//req.TransferStatus;  
  
-	//return mpUserSpi->ReqFromBankToFutureByFuture(&tn,1);//仓位管理		
-	return mpUserSpi->ReqFromBankToFutureByFuture(&req,nRequestID); //银行转期货  
+	//return vntdspi->ReqFromBankToFutureByFuture(&tn,1);//仓位管理		
+	return vntdspi->ReqFromBankToFutureByFuture(&req,nRequestID); //银行转期货  
  
 }
 int  VN_EXPORT  ReqFromFutureToBankByFuture(
@@ -621,7 +594,7 @@ int  VN_EXPORT  ReqFromFutureToBankByFuture(
 	//req.TransferStatus;  
 
 
-	return  mpUserSpi->ReqFromFutureToBankByFuture(&req,nRequestID); //期货转银行  
+	return  vntdspi->ReqFromFutureToBankByFuture(&req,nRequestID); //期货转银行  
 
 }
 
@@ -823,8 +796,8 @@ int  ReqQryInstrument()
 	//r//eq.RequestID = nRequestID;
 
 
-	//return  mpUserSpi->ReqQryInstrument(&req, nRequestID); //期货转银行  
-	return  mpUserSpi->ReqQryInstrument(&req, 1); //期货转银行  
+	//return  vntdspi->ReqQryInstrument(&req, nRequestID); //期货转银行  
+	return  vntdspi->ReqQryInstrument(&req, 1); //期货转银行  
 
 
 }
@@ -870,13 +843,13 @@ double QryBalance(bool BalanceType)
 double QryAvailable()
 {
 
-	return UserAmount;  //可用资金
+	return Available;  //可用资金
  
 }
 void SetShowPosition(bool showstate)
 {
 	showpositionstate = showstate;
-	//return UserAmount;  //可用资金
+	//return Available;  //可用资金
 
 }
  
@@ -894,19 +867,16 @@ int InitTD()
 		//MessageBox(NULL, ("读取vnctptd.ini失败!"), ("错误提示"), MB_OK | MB_ICONWARNING);
 		return 1;
 	}
-	
+
 	gBrokerID = file.GetValueFromSection("setting", "brokeid");
 	gInvestorID = file.GetValueFromSection("setting", "investor");
 	gPassword = file.GetValueFromSection("setting", "password");
-	gAppID = file.GetValueFromSection("setting", "AppID");
-	gAuthCode = file.GetValueFromSection("setting", "AuthCode");
-	gProductInfo = file.GetValueFromSection("setting", "ProductInfo");
+	gAppID = file.GetValueFromSection("setting", "appid");
+	gAuthCode = file.GetValueFromSection("setting", "authcode");
+	gUserProductInfo = file.GetValueFromSection("setting", "userproductinfo");
 	gFrontAddr[0] = file.GetValueFromSection("setting", "address1");
 	gFrontAddr[1] = file.GetValueFromSection("setting", "address2");
 	gFrontAddr[2] = file.GetValueFromSection("setting", "address3");
-
-
-	
 
 
 	if (gBrokerID == "")
@@ -934,21 +904,21 @@ int InitTD()
 	::GetCurrentDirectory(255, dir);
 	std::string tempDir = std::string(dir).append("\\TdTemp\\");
 	::CreateDirectory(tempDir.c_str(), NULL);
-	mpUserApi = CThostFtdcTraderApi::CreateFtdcTraderApi(tempDir.c_str());
-	mpUserApi->RegisterSpi(mpUserSpi);
+	vntdapi = CThostFtdcTraderApi::CreateFtdcTraderApi(tempDir.c_str());
+	vntdapi->RegisterSpi(vntdspi);
 
-	mpUserApi->SubscribePublicTopic(THOST_TERT_QUICK);
-	mpUserApi->SubscribePrivateTopic(THOST_TERT_QUICK);
-	mpUserApi->RegisterFront((char *)gFrontAddr[0].c_str());
-	mpUserApi->RegisterFront((char *)gFrontAddr[1].c_str());
-	mpUserApi->RegisterFront((char *)gFrontAddr[2].c_str());
+	vntdapi->SubscribePublicTopic(THOST_TERT_QUICK);
+	vntdapi->SubscribePrivateTopic(THOST_TERT_QUICK);
 
+	vntdapi->RegisterFront((char *)gFrontAddr[0].c_str());
+	vntdapi->RegisterFront((char *)gFrontAddr[1].c_str());
+	vntdapi->RegisterFront((char *)gFrontAddr[2].c_str());
 
 	cerr << "--->>> " << (char *)gFrontAddr[0].c_str() << std::endl;
 	cerr << "--->>> " << (char *)gFrontAddr[1].c_str() << std::endl;
 	cerr << "--->>> " << (char *)gFrontAddr[2].c_str() << std::endl;
- 
-	 mpUserApi->Init();
+
+	vntdapi->Init();
 	//查询持仓线程
 	HANDLE hThread3 = ::CreateThread(NULL, 0,  PositionThreadProc, NULL, 0, NULL);
 	//HANDLE hThread4 = ::CreateThread(NULL, 0,  ReqQryInstrumentMarginRateThreadProc, NULL, 0, NULL);
@@ -1031,12 +1001,6 @@ void   VNRegOnRspQryInvestorPosition(void(*outputCallback)(const int* a))
 		outputCallback(&a);
 	}
 }
-
-
-
- 
-
-
 
 void  VNRegOnFrontConnected(void(*outputCallback)())
 {

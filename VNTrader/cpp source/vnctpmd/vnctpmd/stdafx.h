@@ -55,7 +55,7 @@ struct TThostFtdcInstrumentIDTypeStruct
 };
 
  
-/*
+
 #define  EID_OnFrontConnected      0
 #define  EID_OnFrontDisconnected   1
 #define  EID_OnRspUserLogin        2
@@ -68,4 +68,3 @@ struct TThostFtdcInstrumentIDTypeStruct
 #define  EID_OnRspUnSubMarketData  7
 #define  EID_OnRspUserLogout       8
 #define  EID_OnRspForQuote         9
-*/

@@ -16,7 +16,7 @@ extern std::string gInvestorID;
 extern std::string gPassword;
 extern std::string gAppID;
 extern std::string gAuthCode;
-extern std::string gProductInfo;
+extern std::string gUserProductInfo;
 
 
 extern HANDLE ghTradedVolMutex;
@@ -57,9 +57,9 @@ std::map<std::string, int> gTypeCheckState_B_History;
 
 
 //授权功能
-CThostFtdcTraderApi *mpUserApi;
+CThostFtdcTraderApi *vntdapi;
 //自己增加
-CTDSpi *mpUserSpi=NULL;
+CTDSpi *vntdspi = new CTDSpi;
 
 
 CTDSpi::CTDSpi()
@@ -70,7 +70,7 @@ CTDSpi::CTDSpi()
 	FRONT_ID = 0;
 	SESSION_ID = 0;
 
-	mpUserApi = NULL;
+	vntdapi = NULL;
 
 	hSyncObj = ::CreateEvent(NULL, FALSE, FALSE, NULL);
 }
@@ -78,10 +78,10 @@ CTDSpi::CTDSpi()
 CTDSpi::~CTDSpi()
 {
 	std::cout << "-->" << __FUNCTION__ << std::endl;
-	if (mpUserApi)
+	if (vntdapi)
 	{
-// 		mpUserApi->Release();
-// 		mpUserApi = NULL;
+// 		vntdapi->Release();
+// 		vntdapi = NULL;
 	}
 	::CloseHandle(hSyncObj);
 	std::cout << "<--" << __FUNCTION__ << std::endl;
@@ -102,13 +102,13 @@ DWORD WINAPI PositionThreadProc(void* p)	//更新排名
 		GState = !GState;
 		if (GState)
 		{
-			if(mpUserSpi)
-				mpUserSpi->ReqQryInvestorPosition();//查询仓位管理		
+			if(vntdspi)
+				vntdspi->ReqQryInvestorPosition();//查询仓位管理		
 		}
 		else
 		{
-			if (mpUserSpi)
-				mpUserSpi->ReqQryTradingAccount(); //查询资金
+			if (vntdspi)
+				vntdspi->ReqQryTradingAccount(); //查询资金
 		}
         //CTP有1S流控，太多的查询会导致查询失败
 		Sleep(1016);
@@ -118,8 +118,8 @@ DWORD WINAPI PositionThreadProc(void* p)	//更新排名
 
 DWORD WINAPI ReqQryInstrumentMarginRateThreadProc(void* p)	//更新排名
 {
-	if (mpUserSpi)
-	 	mpUserSpi->ReqQryInstrumentMarginRate("rb1701");//仓位管理		
+	if (vntdspi)
+	 	vntdspi->ReqQryInstrumentMarginRate("rb1701");//仓位管理		
 		return 1;
 }  
 
@@ -136,18 +136,18 @@ bool CTDSpi::Init()
 	std::string tempDir = std::string(dir).append(".\\CTP\\");
 	::CreateDirectory(tempDir.c_str(), NULL);
 
-	mpUserApi = CThostFtdcTraderApi::CreateFtdcTraderApi(".\\CTP\\");
+	vntdapi = CThostFtdcTraderApi::CreateFtdcTraderApi(".\\CTP\\");
 
-	mpUserSpi = this;//自己增加
-	mpUserApi->RegisterSpi(this);
-	mpUserApi->SubscribePublicTopic(THOST_TERT_QUICK);
-	mpUserApi->SubscribePrivateTopic(THOST_TERT_QUICK);
-	mpUserApi->RegisterFront((char *)gFrontAddr[0].c_str());
-	mpUserApi->RegisterFront((char *)gFrontAddr[1].c_str());
-	mpUserApi->RegisterFront((char *)gFrontAddr[2].c_str());
+	vntdspi = this;//自己增加
+	vntdapi->RegisterSpi(this);
+	vntdapi->SubscribePublicTopic(THOST_TERT_QUICK);
+	vntdapi->SubscribePrivateTopic(THOST_TERT_QUICK);
+	vntdapi->RegisterFront((char *)gFrontAddr[0].c_str());
+	vntdapi->RegisterFront((char *)gFrontAddr[1].c_str());
+	vntdapi->RegisterFront((char *)gFrontAddr[2].c_str());
 
 	//std::cout << "QuickLib TD  CTP Init..." << std::endl;
-	mpUserApi->Init();
+	vntdapi->Init();
 	DWORD err = ::WaitForSingleObject(hSyncObj, 10000);
 
 	if (err == WAIT_OBJECT_0)
@@ -163,17 +163,22 @@ bool CTDSpi::Init()
 
 	return true;
 }    */
-void CTDSpi::ReqUserLogin()
+int CTDSpi::ReqUserLogin()
 {
 	std::cout << __FUNCTION__ << std::endl;
-
 	CThostFtdcReqUserLoginField req;
-	::ZeroMemory(&req, sizeof(req));
+	memset(&req, 0, sizeof(CThostFtdcReqUserLoginField));
 	strcpy_s(req.BrokerID, sizeof(TThostFtdcBrokerIDType), gBrokerID.c_str());
 	strcpy_s(req.UserID, sizeof(TThostFtdcUserIDType), gInvestorID.c_str());
 	strcpy_s(req.Password, sizeof(TThostFtdcPasswordType), gPassword.c_str());
-	int re = mpUserApi->ReqUserLogin(&req, ++iRequestID);
-
+	if (vntdapi)
+	{
+		return vntdapi->ReqUserLogin(&req, ++iRequestID);
+	}
+	else
+	{
+		return 1;
+	}
 }
 void CTDSpi::OnFrontConnected()
 {
@@ -185,15 +190,19 @@ void CTDSpi::OnFrontConnected()
 int CTDSpi::ReqAuthenticate()
 {
 	std::cout << __FUNCTION__ << std::endl;
-	if (mpUserApi == NULL){return 1;}
+	if (vntdapi == NULL) 
+	{
+		return 1;
+	}
 	CThostFtdcReqAuthenticateField  req;
 	memset(&req, 0, sizeof(CThostFtdcReqAuthenticateField));
-	_snprintf_s(req.BrokerID, sizeof(req.BrokerID), sizeof(req.BrokerID)-1,"%s", gBrokerID.c_str());
+	_snprintf_s(req.BrokerID, sizeof(req.BrokerID), sizeof(req.BrokerID) - 1, "%s", gBrokerID.c_str());
 	_snprintf_s(req.UserID, sizeof(req.UserID), sizeof(req.UserID) - 1, "%s", gInvestorID.c_str());
 	_snprintf_s(req.AppID, sizeof(req.AppID), sizeof(req.AppID) - 1, "%s", gAppID.c_str());
 	_snprintf_s(req.AuthCode, sizeof(req.AuthCode), sizeof(req.AuthCode) - 1, "%s", gAuthCode.c_str());
-	_snprintf_s(req.UserProductInfo, sizeof(req.UserProductInfo), sizeof(req.UserProductInfo) - 1, "%s", gProductInfo.c_str());
-	return mpUserApi->ReqAuthenticate(&req, ++iRequestID);
+	_snprintf_s(req.UserProductInfo, sizeof(req.UserProductInfo), sizeof(req.UserProductInfo) - 1, "%s", gUserProductInfo.c_str());
+	printf("%s,%s,%s,%s,%s\n", req.BrokerID, req.UserID, req.AppID, req.AuthCode, req.UserProductInfo);
+	return vntdapi->ReqAuthenticate(&req, ++iRequestID);
 }
 
 void CTDSpi::OnRspAuthenticate(CThostFtdcRspAuthenticateField *pRspAuthenticateField, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
@@ -206,11 +215,10 @@ void CTDSpi::OnRspAuthenticate(CThostFtdcRspAuthenticateField *pRspAuthenticateF
 	}
 	if (IsErrorRspInfo(pRspInfo))
 	{
-		ReqAuthenticate();
+		std::cout << "OnRspAuthenticate错误\n" << std::endl;
 	}
 	hEvent[EID_OnRspAuthenticate] = CreateEvent(NULL, FALSE, FALSE, "EID_OnRspAuthenticate");
 	SetEvent(hEvent[EID_OnRspAuthenticate]);
-
 	ReqUserLogin();
 }
  
@@ -220,7 +228,6 @@ void CTDSpi::OnRspAuthenticate(CThostFtdcRspAuthenticateField *pRspAuthenticateF
 void CTDSpi::OnFrontDisconnected(int nReason)
 {
 	std::cout << __FUNCTION__ << std::endl;
-
 	SYSTEMTIME t;
 	::GetLocalTime(&t);
 	std::cout << t.wHour << ":" << t.wMinute << ":" << t.wSecond << std::endl;
@@ -238,23 +245,21 @@ void CTDSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,CThostFtd
 	{
 		return;
 	}
+	SetEvent(hEvent[EID_OnFrontConnected]);
+	ReqSettlementInfoConfirm();
 	std::cout << __FUNCTION__ << std::endl;
 	FRONT_ID = pRspUserLogin->FrontID;
 	SESSION_ID = pRspUserLogin->SessionID;
-	//if (bIsLast)
+ 
 	if (bIsLast && !IsErrorRspInfo(pRspInfo))
 	{
 		if (pRspInfo && pRspInfo->ErrorID != 0)
 		{
-			printf("Failer:登录失败,ErrorID=0x%04x, ErrMsg=%s\n", pRspInfo->ErrorID, pRspInfo->ErrorMsg);
+			printf("Failer:ErrorID=0x%04x, ErrMsg=%s\n", pRspInfo->ErrorID, pRspInfo->ErrorMsg);
 		}
 		else
 		{
-			printf("Scuess:登录成功\n");
-
-			SetEvent(hEvent[EID_OnFrontConnected]);
-
-		    ReqSettlementInfoConfirm();
+			printf("Scuess:\n");
 			Sleep(3000);
 		}
 	}
@@ -307,7 +312,7 @@ int CTDSpi::ReqSettlementInfoConfirm()
 	memset(&req, 0, sizeof(CThostFtdcSettlementInfoConfirmField));
 	strcpy_s(req.BrokerID,sizeof(req.BrokerID), gBrokerID.c_str());
 	strcpy_s(req.InvestorID,sizeof(req.InvestorID), gInvestorID.c_str());
-	return mpUserApi->ReqSettlementInfoConfirm(&req, ++iRequestID);
+	return vntdapi->ReqSettlementInfoConfirm(&req, ++iRequestID);
 }
 
 void CTDSpi::OnRspSettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField *pSettlementInfoConfirm, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
@@ -338,12 +343,14 @@ bool CTDSpi::IsErrorRspInfo(CThostFtdcRspInfoField *pRspInfo)
 
 void CTDSpi::OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
+	std::cout << __FUNCTION__ << std::endl;
 	std::cerr << pRspInfo->ErrorID << "\t" << pRspInfo->ErrorMsg << std::endl;
 	IsErrorRspInfo(pRspInfo);
 }
 
 void CTDSpi::OnRtnOrder(CThostFtdcOrderField *pOrder)
 {
+	std::cout << __FUNCTION__ << std::endl;
 	if (!pOrder)
 	{
 		return;
@@ -357,7 +364,7 @@ void CTDSpi::OnRtnOrder(CThostFtdcOrderField *pOrder)
 
 void CTDSpi::OnRtnTrade(CThostFtdcTradeField *pTrade)
 {
- 
+	std::cout << __FUNCTION__ << std::endl;
 	if (!pTrade)
 	{
 		return;
@@ -380,6 +387,7 @@ void CTDSpi::OnRtnTrade(CThostFtdcTradeField *pTrade)
  
 void  CTDSpi::OnRtnInstrumentStatus(CThostFtdcInstrumentStatusField *pInstrumentStatus)
 {
+	std::cout << __FUNCTION__ << std::endl;
 	if (!pInstrumentStatus)
 	{
 		return;
@@ -408,7 +416,7 @@ int CTDSpi::DeleteOrder(char *InstrumentID, DWORD orderRef)
 	ReqDel.FrontID = FRONT_ID;
 	ReqDel.SessionID = SESSION_ID;
 	ReqDel.ActionFlag = THOST_FTDC_AF_Delete;
-	int iResult = mpUserApi->ReqOrderAction(&ReqDel, ++(iRequestID));
+	int iResult = vntdapi->ReqOrderAction(&ReqDel, ++(iRequestID));
 
 	if (iResult != 0)
 		cerr << "Failer: 撤单 : " << ((iResult == 0) ? "成功" : "失败(") << iResult << ")" << endl;
@@ -464,9 +472,6 @@ VOID MakeOrder(CThostFtdcInputOrderField *pOrder)
 
 int CTDSpi:: InsertOrder(char *InstrumentID, char dir,char offsetFlag, char priceType, double price, int num)
 {
- 
-
-
 	CThostFtdcInputOrderField req;
 	MakeOrder(&req);
 	::strcpy_s(req.InstrumentID,sizeof(TThostFtdcInstrumentIDType), InstrumentID);
@@ -479,7 +484,7 @@ int CTDSpi:: InsertOrder(char *InstrumentID, char dir,char offsetFlag, char pric
 
 	++(iOrderRef);
 	_snprintf_s(req.OrderRef,sizeof(TThostFtdcOrderRefType), sizeof(TThostFtdcOrderRefType)-1, "%012d", iOrderRef);
-	int iResult = mpUserApi->ReqOrderInsert(&req, ++(iRequestID));
+	int iResult = vntdapi->ReqOrderInsert(&req, ++(iRequestID));
 	if (iResult != 0)
 		cerr << "Failer: 下单" << InstrumentID << price << num << ": " << ((iResult == 0) ? "成功" : "失败(") << iResult << ")" << endl;
 	else
@@ -493,25 +498,19 @@ int CTDSpi:: InsertOrder(char *InstrumentID, char dir,char offsetFlag, char pric
 
 
 
-void CTDSpi::ReqQryInvestorPosition()
+int CTDSpi::ReqQryInvestorPosition()
 {
-
-	if (mpUserApi == NULL)
+	std::cout << __FUNCTION__ << std::endl;
+	if (vntdapi == NULL)
 	{
-		return;
+		return 1;
 	}
-
-
 	// WirteTradeRecordToFileMainThread(0, "ReqQryInvestorPosition");
-
-
 	//CThostFtdcQryInvestorPositionField req = { 0 };
 	//strcpy(req.BrokerID, m_BrokerID);
 	//strcpy(req.InvestorID, m_InvestorInfos[reqInfo.lAccIdx].InvestorID);
 	//req.InstrumentID; //指定合约的话，就是查询特定合约的持仓信息，不填就是查询所有持仓  
 	//ReqQryInvestorPosition(&req, reqInfo.nRequestID);
-
-
 	CThostFtdcQryInvestorPositionField req;
 	memset(&req, 0, sizeof(CThostFtdcQryInvestorPositionField));
 	//strcpy(req.BrokerID, BROKER_ID);
@@ -521,8 +520,10 @@ void CTDSpi::ReqQryInvestorPosition()
 	strcpy_s(req.InvestorID,sizeof(TThostFtdcInvestorIDType),gInvestorID.c_str());
 	//strcpy(req.InstrumentID, INSTRUMENT_ID);
 	//printf("指定持仓%s", INSTRUMENT_ID);
-	int iResult = mpUserApi->ReqQryInvestorPosition(&req, ++iRequestID);
-	cerr << "请求查询投资者持仓: " << ((iResult == 0) ? "成功" : "失败") << endl;
+	//int iResult = vntdapi->ReqQryInvestorPosition(&req, ++iRequestID);
+
+	return vntdapi->ReqQryInvestorPosition(&req, ++iRequestID);
+	//cerr << "请求查询投资者持仓: " << ((iResult == 0) ? "成功" : "失败") << endl;
 	//if (iResult != 0)
 	//	cerr << "Failer(ReqQryInvestorPosition): 请求查询投资者持仓: " << ((iResult == 0) ? "成功" : "失败(") << iResult << ")" << endl;
 	//else
@@ -533,8 +534,9 @@ void CTDSpi::ReqQryInvestorPosition()
 ///请求查询投资者品种/跨品种保证金
 void CTDSpi::ReqQryInvestorProductGroupMargin(char *Instrument)
 {
+	std::cout << __FUNCTION__ << std::endl;
 
-	if (mpUserApi == NULL)
+	if (vntdapi == NULL)
 	{
 		return;
 	}
@@ -571,7 +573,7 @@ void CTDSpi::ReqQryInvestorProductGroupMargin(char *Instrument)
 
 
  	//printf("指定持仓%s", INSTRUMENT_ID);
-	int iResult = mpUserApi->ReqQryInvestorProductGroupMargin(&req, ++iRequestID);
+	int iResult = vntdapi->ReqQryInvestorProductGroupMargin(&req, ++iRequestID);
 	//cerr << "--->>> 请求查询投资者持仓: " << ((iResult == 0) ? "成功" : "失败") << endl;
 
 	if (iResult != 0)
@@ -583,8 +585,9 @@ void CTDSpi::ReqQryInvestorProductGroupMargin(char *Instrument)
 
 int CTDSpi::ReqQueryMaxOrderVolume(CThostFtdcQueryMaxOrderVolumeField *pQueryMaxOrderVolume, int nRequestID)
 {
+	std::cout << __FUNCTION__ << std::endl;
 
-	int iResult = mpUserApi->ReqQueryMaxOrderVolume(pQueryMaxOrderVolume, ++iRequestID);
+	int iResult = vntdapi->ReqQueryMaxOrderVolume(pQueryMaxOrderVolume, ++iRequestID);
 	if (iResult != 0)
 		cerr << "Failer(ReqQueryMaxOrderVolume): 查询下单最大值: " << ((iResult == 0) ? "成功" : "失败(") << iResult << ")" << endl;
 	else
@@ -596,8 +599,9 @@ int CTDSpi::ReqQueryMaxOrderVolume(CThostFtdcQueryMaxOrderVolumeField *pQueryMax
 ///期货发起银行资金转期货请求
 int CTDSpi::ReqFromBankToFutureByFuture(CThostFtdcReqTransferField *pReqTransfer, int nRequestID)
 {
+	std::cout << __FUNCTION__ << std::endl;
 
-	int iResult = mpUserApi->ReqFromBankToFutureByFuture(pReqTransfer, ++iRequestID);
+	int iResult = vntdapi->ReqFromBankToFutureByFuture(pReqTransfer, ++iRequestID);
 
 	if (iResult != 0)
 		cerr << "Failer(ReqFromBankToFutureByFuture): 期货发起银行资金转期货请求: " << ((iResult == 0) ? "成功" : "失败(") << iResult << ")" << endl;
@@ -610,8 +614,9 @@ int CTDSpi::ReqFromBankToFutureByFuture(CThostFtdcReqTransferField *pReqTransfer
 ///期货发起期货资金转银行请求
 int CTDSpi::ReqFromFutureToBankByFuture(CThostFtdcReqTransferField *pReqTransfer, int nRequestID)
 {
+	std::cout << __FUNCTION__ << std::endl;
 
-	int iResult = mpUserApi->ReqFromFutureToBankByFuture(pReqTransfer, ++iRequestID);
+	int iResult = vntdapi->ReqFromFutureToBankByFuture(pReqTransfer, ++iRequestID);
 
 	if (iResult != 0)
 		cerr << "Failer(ReqFromFutureToBankByFuture): 期货发起期货资金转银行请求: " << ((iResult == 0) ? "成功" : "失败(") << iResult << ")" << endl;
@@ -624,7 +629,9 @@ int CTDSpi::ReqFromFutureToBankByFuture(CThostFtdcReqTransferField *pReqTransfer
 
 void CTDSpi::ReqQryInstrument(char *Instrument)
 {
-	if (mpUserApi == NULL)
+	std::cout << __FUNCTION__ << std::endl;
+
+	if (vntdapi == NULL)
 	{
 		return;
 	}
@@ -640,7 +647,7 @@ void CTDSpi::ReqQryInstrument(char *Instrument)
 
 	//printf("查询乘数[%s]   [%s]  [%s]", req.ExchangeID, req.ProductID, req.InstrumentID);
 
-	int iResult = mpUserApi->ReqQryInstrument(&req, ++iRequestID);
+	int iResult = vntdapi->ReqQryInstrument(&req, ++iRequestID);
 	//cerr << "--->>> 请求查询合约: " << ((iResult == 0) ? "成功" : "失败") << endl;
 
 	if (iResult != 0)
@@ -651,7 +658,9 @@ void CTDSpi::ReqQryInstrument(char *Instrument)
 
 void CTDSpi::ReqQryInstrumentMarginRate(char *Instrument)
 {
-	if (mpUserApi == NULL)
+	std::cout << __FUNCTION__ << std::endl;
+
+	if (vntdapi == NULL)
 	{
 		return;
 	}
@@ -678,7 +687,7 @@ void CTDSpi::ReqQryInstrumentMarginRate(char *Instrument)
 
 	//strcpy(req.InstrumentID, INSTRUMENT_ID);
 	//printf("指定持仓%s", INSTRUMENT_ID);
-	int iResult = mpUserApi->ReqQryInstrumentMarginRate(&req, ++iRequestID);
+	int iResult = vntdapi->ReqQryInstrumentMarginRate(&req, ++iRequestID);
 	cerr << "--->>> 请求查询投资者持仓: " << ((iResult == 0) ? "成功" : "失败") << endl;
 
 
@@ -690,6 +699,8 @@ void CTDSpi::ReqQryInstrumentMarginRate(char *Instrument)
 ///请求查询合约
 int CTDSpi::ReqQryInstrument(CThostFtdcQryInstrumentField *pQryInstrument, int nRequestID)
 {
+	std::cout << __FUNCTION__ << std::endl;
+
 
 	//if (pQryInstrument == NULL)
 	//{
@@ -711,7 +722,7 @@ int CTDSpi::ReqQryInstrument(CThostFtdcQryInstrumentField *pQryInstrument, int n
 	//strcpy(req.BrokerID, gBrokerID.c_str());
 	//strcpy(req.InvestorID, gInvestorID.c_str());
 	//strcpy(req.InstrumentID, Instrument);
-	int iResult = mpUserApi->ReqQryInstrument(&req, ++iRequestID);
+	int iResult = vntdapi->ReqQryInstrument(&req, ++iRequestID);
 	if (iResult != 0)
 		cerr << "Failer(ReqQryInstrument): 请求查询合约: " << ((iResult == 0) ? "成功" : "失败(") << iResult << ")" << endl;
 	else
@@ -721,6 +732,8 @@ int CTDSpi::ReqQryInstrument(CThostFtdcQryInstrumentField *pQryInstrument, int n
 
 int CTDSpi::ReqQryContractBank(CThostFtdcQryContractBankField *pQryContractBank, int nRequestID)
 {
+	std::cout << __FUNCTION__ << std::endl;
+
 	if (pQryContractBank == NULL)
 	{
 		return -1;
@@ -732,7 +745,7 @@ int CTDSpi::ReqQryContractBank(CThostFtdcQryContractBankField *pQryContractBank,
 	//strcpy(req.BrokerID, gBrokerID.c_str());
 	//strcpy(req.InvestorID, gInvestorID.c_str());
 	//strcpy(req.InstrumentID, Instrument);
-	int iResult = mpUserApi->ReqQryContractBank(&req, ++iRequestID);
+	int iResult = vntdapi->ReqQryContractBank(&req, ++iRequestID);
 	// cerr << "Failer: 请求查询银行: " << ((iResult == 0) ? "成功" : "失败(") << iResult<<")"<<endl;
 	if(iResult!=0)
 	    cerr << "Failer(ReqQryContractBank): 请求查询银行: " << ((iResult == 0) ? "成功" : "失败(") << iResult<<")"<<endl;
@@ -745,7 +758,9 @@ int CTDSpi::ReqQryContractBank(CThostFtdcQryContractBankField *pQryContractBank,
 
 int CTDSpi::ReqQryTradingAccount()
 {
-	if (mpUserApi == NULL)
+	std::cout << __FUNCTION__ << std::endl;
+
+	if (vntdapi == NULL)
 	{
 		return 1;
 	}
@@ -753,13 +768,14 @@ int CTDSpi::ReqQryTradingAccount()
 	memset(&req, 0, sizeof(CThostFtdcQryTradingAccountField));
 	strcpy_s(req.BrokerID,sizeof(TThostFtdcBrokerIDType), gBrokerID.c_str());
 	strcpy_s(req.InvestorID,sizeof(TThostFtdcInvestorIDType), gInvestorID.c_str());
-	return mpUserApi->ReqQryTradingAccount(&req, ++iRequestID); 
+	return vntdapi->ReqQryTradingAccount(&req, ++iRequestID); 
 }
 
 
 
 bool FindStr(int id, char * str)
 {
+	std::cout << __FUNCTION__ << std::endl;
 
 	//char * pdest1 = strstr(InstrumentID_n[id], str);
 	//int  result1 = pdest1 - InstrumentID_n[id] + 1;
@@ -791,6 +807,7 @@ int errnum = 0;
 extern bool showpositionstate;
 void CTDSpi::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *pInvestorPosition, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
+	std::cout << __FUNCTION__ << std::endl;
 
 	if (pInvestorPosition == NULL)
 	{
@@ -1117,35 +1134,50 @@ bool  IsErrorRspInfo222(CThostFtdcRspInfoField *pRspInfo)
 	return  ((pRspInfo) && (pRspInfo->ErrorID != 0));
 }
 
-double YestayAllAmount=-999999999;
+double YestayAllAmount=0;
+double TodayAllAmount=0;
+double Available=0;
 
-double TodayAllAmount=-999999999;
 
-double UserAmount=-999999999;
+struct CTradeAcount
+{ 
+	// 静态权益
+	double prebalance;
+	//动态权益
+	double current;
+ 	//可用权益
+	double available;
+    //今日盈亏
+	double rate;
+	//仓位
+	double positionrate;
+};
+
 void CTDSpi::OnRspQryTradingAccount(CThostFtdcTradingAccountField *pTradingAccount, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
+	std::cout << __FUNCTION__ << std::endl;
 	if (pTradingAccount == NULL)
 	{
 		return;
 	}
-
-
-	//cerr << "--->>> " << __FUNCTION__ << endl;
 	if (bIsLast && !IsErrorRspInfo(pRspInfo))
 	{
+		CTradeAcount tn;
 		//cerr << "--->>> 交易日: " << pTradingAccount->TradingDay << "\n" << endl;
 		//cerr << "--->>> \n可用资金: " << (int)(pTradingAccount->Available / 10000) << "万\n" << endl;
 		//cerr << "--->>> 可取资金: " << pTradingAccount->WithdrawQuota  << endl;
 		//静态权益=上日结算-出金金额+入金金额
-		double preBalance = pTradingAccount->PreBalance - pTradingAccount->Withdraw + pTradingAccount->Deposit;
+		tn.prebalance = pTradingAccount->PreBalance - pTradingAccount->Withdraw + pTradingAccount->Deposit;
 		//cerr << "--->>> 静态权益: " << preBalance  << endl;
 		//动态权益=静态权益+ 平仓盈亏+ 持仓盈亏- 手续费
-		double current = preBalance + pTradingAccount->CloseProfit + pTradingAccount->PositionProfit - pTradingAccount->Commission;
+		tn.current = tn.prebalance + pTradingAccount->CloseProfit + pTradingAccount->PositionProfit - pTradingAccount->Commission;
 		//cerr << "--->>> 动态权益: " << current  << endl;
 
-		YestayAllAmount = preBalance; //静态权益
-		TodayAllAmount = current; //动态权益
-		UserAmount = pTradingAccount->Available;  //可用资金
+		YestayAllAmount = tn.prebalance; //静态权益
+		TodayAllAmount = tn.current; //动态权益
+		tn.available = pTradingAccount->Available;  //可用资金
+		Available = tn.available;
+		printf("Available: %f\n", tn.available);
 		/*
 		//检查交易日志文件是否存在，是否需要新建文本文件
 		if (LogFilePaths[0] == '\0')
@@ -1434,7 +1466,7 @@ void CTDSpi::OnRspQryInstrumentMarginRate(CThostFtdcInstrumentMarginRateField *p
 
 		//YestayAllAmount = preBalance; //静态权益
 		//TodayAllAmount = current; //动态权益
-		//UserAmount = pTradingAccount->Available;  //可用资金
+		//Available = pTradingAccount->Available;  //可用资金
 												  /*
 												  //检查交易日志文件是否存在，是否需要新建文本文件
 												  if (LogFilePaths[0] == '\0')

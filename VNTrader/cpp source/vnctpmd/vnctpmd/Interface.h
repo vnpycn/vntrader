@@ -49,7 +49,7 @@ extern "C"{
 
 	void VN_EXPORT VNRegOnRspUserLogin(void(*outputCallback)(const CThostFtdcRspUserLoginField * a));
 
-	void VN_EXPORT VNRegOnRspUserLogout(void(*outputCallback)( ));  //XXXXXXXXXXXXXX
+	void VN_EXPORT VNRegOnRspUserLogout(void(*outputCallback)(const int* a));
 
 	void VN_EXPORT VNRegOnRspUnSubMarketData(void(*outputCallback)(const int* a));
 

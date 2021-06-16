@@ -132,7 +132,6 @@ class CTPTrader(object):
     def OnFrontDisconnected(self, a):
         pass
 
-
     # 注册Python的OnRspUserLogin回调函数指针，对应CTP c++的OnRspUserLogin方法
     def VNRegOnRspUserLogin(self):
         CMPFUNC = CFUNCTYPE(None, POINTER(VNCThostFtdcRspUserLoginField))
@@ -157,6 +156,13 @@ class CTPTrader(object):
     def VNRegOnRspQryTradingAccount(self):
         CMPFUNC = CFUNCTYPE(None, c_void_p)
         self.vntd.VNRegOnRspQryTradingAccount(CMPFUNC(self.OnFrontDisconnected))
+
+    # 注册Python的OnRspQryInvestorPosition回调函数指针，对应CTP c++的OnRspQryInvestorPosition方法
+    def VNRegOnRspQryInvestorPosition(self):
+        CMPFUNC = CFUNCTYPE(None, c_void_p)
+        self.vntd.VNRegOnRspQryTradingAccount(CMPFUNC(self.OnFrontDisconnected))
+
+
 
     def InitTD(self):
         return self.fInitTD()
