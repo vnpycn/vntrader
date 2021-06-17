@@ -66,6 +66,15 @@ class MyCTPTrade(CTPTrader):
         print("账户资金回调OnRspQryTradingAccount")
         log_todaytd('账户资金回调OnRspQryTradingAccount')
 
+    # 委托回报
+    def OnRtnOrder(self, a):
+        log_todaytd('委托回报OnRtnOrder')
+
+    # 成交回报
+    def OnRtnTrade(self, a):
+        log_todaytd('成交回报OnRtnTrade')
+
+
 # MyCTPMarket类继承自CTPMarket类
 class MyCTPMarket(CTPMarket):
     # 行情回调
@@ -90,14 +99,13 @@ class MyCTPMarket(CTPMarket):
 
     # 退出登录回调
     def OnRspUserLogout(self, a):
-        print(a.contents.a1, a.contents.a2)
+        #print(a.contents.a1, a.contents.a2)
         print(u'行情登出成功OnRspUserLogout')
         log_todaymd('行情登出成功OnRspUserLogout')
     # 建立连接回调
     def OnFrontConnected(self):
         print("连接行情服务器成功OnFrontConnected")
         log_todaymd('连接行情服务器成功OnFrontConnected')
-
 
     # 断开连接回调
     def OnFrontDisconnected(self, a):
@@ -110,7 +118,7 @@ class RegTdThreadOnFrontConnected(Thread):
         super().__init__()
         self.name = name
         self.td = td
-    def run(self):  # 一定要叫这个名字，不能是别的
+    def run(self):  
         self.td.VNRegOnFrontConnected()
 
 class RegTdThreadOnFrontDisconnected(Thread):
@@ -118,7 +126,7 @@ class RegTdThreadOnFrontDisconnected(Thread):
         super().__init__()
         self.name = name
         self.td=td
-    def run(self):  # 一定要叫这个名字，不能是别的
+    def run(self):  
         self.td.VNRegOnFrontDisconnected()
 
 class RegTdThreadOnRspUserLogin(Thread):
@@ -126,7 +134,7 @@ class RegTdThreadOnRspUserLogin(Thread):
         super().__init__()
         self.name = name
         self.td=td
-    def run(self):  # 一定要叫这个名字，不能是别的
+    def run(self):  
         self.td.VNRegOnRspUserLogin()
 
 class RegTdThreadOnRspUserLogout(Thread):
@@ -134,7 +142,7 @@ class RegTdThreadOnRspUserLogout(Thread):
         super().__init__()
         self.name = name
         self.td=td
-    def run(self):  # 一定要叫这个名字，不能是别的
+    def run(self):  
         self.td.VNRegOnRspUserLogout()
 
 class RegTdThreadOnRspQryInvestorPosition(Thread):
@@ -142,7 +150,7 @@ class RegTdThreadOnRspQryInvestorPosition(Thread):
         super().__init__()
         self.name = name
         self.td=td
-    def run(self):  # 一定要叫这个名字，不能是别的
+    def run(self):  
         self.td.VNRegOnRspQryInvestorPosition()
 
 class RegTdThreadOnRspQryTradingAccount(Thread):
@@ -150,8 +158,24 @@ class RegTdThreadOnRspQryTradingAccount(Thread):
         super().__init__()
         self.name = name
         self.td=td
-    def run(self):  # 一定要叫这个名字，不能是别的
+    def run(self):  
         self.td.VNRegOnRspQryTradingAccount()
+
+class RegTdThreadOnRtnOrder(Thread):
+    def __init__(self, name, td):
+        super().__init__()
+        self.name = name
+        self.td=td
+    def run(self):
+        self.td.VNRegOnRtnOrder()
+
+class RegTdThreadOnRtnTrade(Thread):
+    def __init__(self, name, td):
+        super().__init__()
+        self.name = name
+        self.td=td
+    def run(self):
+        self.td.VNRegOnRtnTrade()
 #---------------------------------------
 
 
@@ -160,7 +184,7 @@ class RegMdThreadOnFrontConnected(Thread):
         super().__init__()
         self.name = name
         self.md = md
-    def run(self):  # 一定要叫这个名字，不能是别的
+    def run(self):  
         self.md.VNRegOnFrontConnected()
 
 class RegMdThreadOnFrontDisconnected(Thread):
@@ -168,7 +192,7 @@ class RegMdThreadOnFrontDisconnected(Thread):
         super().__init__()
         self.name = name
         self.md=md
-    def run(self):  # 一定要叫这个名字，不能是别的
+    def run(self):  
         self.md.VNRegOnFrontDisconnected()
 
 #RegThreadTdOnRspUserLogin
@@ -177,7 +201,7 @@ class RegMdThreadOnRspUserLogin(Thread):
         super().__init__()
         self.name = name
         self.md=md
-    def run(self):  # 一定要叫这个名字，不能是别的
+    def run(self):  
         self.md.VNRegOnRspUserLogin()
 
 #RegThreadTdOnRspUserLogin
@@ -186,7 +210,7 @@ class RegMdThreadOnRspUserLogout(Thread):
         super().__init__()
         self.name = name
         self.md=md
-    def run(self):  # 一定要叫这个名字，不能是别的
+    def run(self):  
         self.md.VNRegOnRspUserLogout()
 
 class RegMdThreadOnRtnDepthMarketData(Thread):
@@ -215,22 +239,19 @@ def log_todaymd(mystr):
 
 def function_td(td, tname):
     RegTdThreadOnFrontConnected('OnFrontConnected', td).start()
+    '''
     RegTdThreadOnFrontDisconnected('OnFrontDisconnected', td).start()
+
     RegTdThreadOnRspUserLogin('OnRspUserLogin', td).start()
     RegTdThreadOnRspUserLogout('OnRspUserLogout', td).start()
-    RegTdThreadOnRspQryTradingAccount('OnRspQryTradingAccount', td).start()
-
-
     RegTdThreadOnRspQryInvestorPosition('OnRspQryInvestorPosition', td).start()
-    RegTdThreadOnRspQryTradingAccount('OnRspQryInvestorPosition', td).start()
-
-
-
-
-
-
+    RegTdThreadOnRspQryTradingAccount('OnRspQryTradingAccount', td).start()
+    RegTdThreadOnRtnOrder('OnRspQryInvestorPosition', td).start()
+    RegTdThreadOnRtnTrade('OnRspQryInvestorPosition', td).start()
+    '''
     time.sleep(1)
     td.InitTD()
+    print("InitTD")
     #if td.InitTD() != 0:
     #    log_todaytd('初始化失败，请检查vnctptd.ini配置文件是否配置正确')
     # 调用交易接口元素，通过 “ 接口变量.元素（接口类内部定义的方法或变量） ” 形式调用
@@ -262,6 +283,7 @@ def function_td(td, tname):
 
         print('--------------------------------------------------------')
         '''
+        print('--------------------------------------------------------')
         time.sleep(3)  # sleep1秒，防止死循环导致CPU占有率过高，1即可，不宜过大，若过大会导致程序进程长时间无响应，丢失行情数据
 
     pass
@@ -331,9 +353,8 @@ def function_md(md, tname):
 
 
 def main():
-    """
-    Application entry point
-    """
+
+
     logging.basicConfig(level=logging.DEBUG)
     # create the application and the main window
     app = QtWidgets.QApplication(sys.argv)
@@ -410,9 +431,12 @@ def main():
     window.show()
     tt = TDThread('tt')
     tt.start()
-    tm = MDThread('tm')
-    tm.start()
+
+    #tm = MDThread('tm')
+    #tm.start()
     app.exec_()
+    os._exit(1)
+
 
 
 if __name__ == "__main__":

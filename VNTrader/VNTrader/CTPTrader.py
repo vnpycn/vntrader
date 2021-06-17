@@ -132,6 +132,22 @@ class CTPTrader(object):
     def OnFrontDisconnected(self, a):
         pass
 
+    # 请求查询投资者持仓响应
+    def OnRspQryInvestorPosition(self, a):
+        pass
+
+    # 账户资金回调
+    def OnRspQryTradingAccount(self, a):
+        pass
+
+    # 委托回报
+    def OnRtnOrder(self, a):
+        pass
+
+    # 成交回报
+    def OnRtnTrade(self, a):
+        pass
+
     # 注册Python的OnRspUserLogin回调函数指针，对应CTP c++的OnRspUserLogin方法
     def VNRegOnRspUserLogin(self):
         CMPFUNC = CFUNCTYPE(None, POINTER(VNCThostFtdcRspUserLoginField))
@@ -152,17 +168,26 @@ class CTPTrader(object):
         CMPFUNC = CFUNCTYPE(None, c_void_p)
         self.vntd.VNRegOnFrontDisconnected(CMPFUNC(self.OnFrontDisconnected))
 
-    # 注册Python的OnRspQryTradingAccount回调函数指针，对应CTP c++的OnRspQryTradingAccount方法
-    def VNRegOnRspQryTradingAccount(self):
-        CMPFUNC = CFUNCTYPE(None, c_void_p)
-        self.vntd.VNRegOnRspQryTradingAccount(CMPFUNC(self.OnFrontDisconnected))
-
     # 注册Python的OnRspQryInvestorPosition回调函数指针，对应CTP c++的OnRspQryInvestorPosition方法
     def VNRegOnRspQryInvestorPosition(self):
         CMPFUNC = CFUNCTYPE(None, c_void_p)
-        self.vntd.VNRegOnRspQryTradingAccount(CMPFUNC(self.OnFrontDisconnected))
+        self.vntd.VNRegOnRspQryTradingAccount(CMPFUNC(self.OnRspQryInvestorPosition))
 
+    # 注册Python的OnRspQryTradingAccount回调函数指针，对应CTP c++的OnRspQryTradingAccount方法
+    def VNRegOnRspQryTradingAccount(self):
+        CMPFUNC = CFUNCTYPE(None, c_void_p)
+        self.vntd.VNRegOnRspQryTradingAccount(CMPFUNC(self.OnRspQryTradingAccount))
 
+    # 注册Python的OnRtnOrder回调函数指针，对应CTP c++的OnRtnOrder方法
+    def VNRegOnRtnOrder(self):
+        CMPFUNC = CFUNCTYPE(None, c_void_p)
+        self.vntd.VNRegOnRtnOrder(CMPFUNC(self.OnRtnOrder))
+
+    # 注册Python的OnRtnOrder回调函数指针，对应CTP c++的OnRtnOrder方法
+    def VNRegOnRtnTrade(self):
+        CMPFUNC = CFUNCTYPE(None, c_void_p)
+        self.vntd.VNRegOnRtnTrade(CMPFUNC(self.OnRtnTrade))
 
     def InitTD(self):
         return self.fInitTD()
+
