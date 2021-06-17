@@ -854,20 +854,18 @@ void SetShowPosition(bool showstate)
 }
  
 
-extern DWORD WINAPI PositionThreadProc(void* p);	//更新排名
+extern DWORD WINAPI QryThreadProc(void* p);	//更新排名
 extern DWORD WINAPI ReqQryInstrumentMarginRateThreadProc(void* p);	//更新排名
 
 int InitTD()
 {
 	cerr << "--->>> " << __FUNCTION__ << std::endl;
-
 	IniFile file;
 	if (!file.Init("vnctptd.ini"))
 	{
-		//MessageBox(NULL, ("读取vnctptd.ini失败!"), ("错误提示"), MB_OK | MB_ICONWARNING);
+		//读取vnctptd.ini失败
 		return 1;
 	}
-
 	gBrokerID = file.GetValueFromSection("setting", "brokeid");
 	gInvestorID = file.GetValueFromSection("setting", "investor");
 	gPassword = file.GetValueFromSection("setting", "password");
@@ -878,25 +876,24 @@ int InitTD()
 	gFrontAddr[1] = file.GetValueFromSection("setting", "address2");
 	gFrontAddr[2] = file.GetValueFromSection("setting", "address3");
 
-
 	if (gBrokerID == "")
 	{
-		//MessageBox(NULL, ("vnctptd.ini中BrokerID字段未设置"), ("错误提示"), MB_OK | MB_ICONWARNING);
+		//vnctptd.ini中BrokerID字段未设置
 		return 1;
 	}
 	if (gInvestorID == "")
 	{
-		//MessageBox(NULL, ("vnctptd.ini中InvestorID字段未设置"), ("错误提示"), MB_OK | MB_ICONWARNING);
+		//vnctptd.ini中InvestorID字段未设置
 		return 1;
 	}
 	if (gPassword == "")
 	{
-		//MessageBox(NULL, ("vnctptd.ini中Password字段未设置"), ("错误提示"), MB_OK | MB_ICONWARNING);
+		//vnctptd.ini中Password字段未设置
 		return 1;
 	}
 	if (gFrontAddr[0] == "" &&  gFrontAddr[1] == "" && gFrontAddr[2] == "")
 	{
-		//MessageBox(NULL, ("vnctptd.ini中FrontAddr字段至少要设置一个"), ("错误提示"), MB_OK | MB_ICONWARNING);
+		//vnctptd.ini中FrontAddr字段至少要设置一个
 		return 1;
 	}
 
@@ -919,8 +916,8 @@ int InitTD()
 	cerr << "--->>> " << (char *)gFrontAddr[2].c_str() << std::endl;
 
 	vntdapi->Init();
-	//查询持仓线程
-	HANDLE hThread3 = ::CreateThread(NULL, 0,  PositionThreadProc, NULL, 0, NULL);
+	//查询线程
+	HANDLE hThread3 = ::CreateThread(NULL, 0,  QryThreadProc, NULL, 0, NULL);
 	//HANDLE hThread4 = ::CreateThread(NULL, 0,  ReqQryInstrumentMarginRateThreadProc, NULL, 0, NULL);
 	return 0;
 }
@@ -929,116 +926,432 @@ int InitTD()
 
 
 
+unsigned nThreadID_OnFrontConnected;
+unsigned nThreadID_OnFrontDisconnected;
+unsigned nThreadID_OnRspUserLogin;
+unsigned nThreadID_OnRspUserLogout;
+unsigned nThreadID_OnRspQryInvestorPosition;
+unsigned nThreadID_OnRspQryTradingAccount;
+unsigned nThreadID_OnRtnOrder;
+unsigned nThreadID_OnRtnTrade;
 
-void   VNRegOnRspUserLogin(void(*outputCallback)(const CThostFtdcRspUserLoginField* a))
+
+
+HANDLE hStartEvent_OnFrontConnected;
+HANDLE hStartEvent_OnFrontDisconnected;
+HANDLE hStartEvent_OnRspUserLogin;
+HANDLE hStartEvent_OnRspUserLogout;
+HANDLE hStartEvent_OnRspQryInvestorPosition;
+HANDLE hStartEvent_OnRspQryTradingAccount;
+HANDLE hStartEvent_OnRtnOrder;
+HANDLE hStartEvent_OnRtnTrade;
+
+#include <windows.h>
+#include <cstdio>
+#include <process.h>
+
+#define MY_MSG WM_USER+100
+
+
+
+unsigned __stdcall MsgThreadOnFrontConnected(void *param)
 {
-	hEvent[EID_OnRspUserLogin] = CreateEvent(NULL, FALSE, FALSE, "EID_OnRspUserLogin");
-	ResetEvent(hEvent[EID_OnRspUserLogin]);
-	while (1)
+	MSG msg;
+	PeekMessage(&msg, NULL, WM_USER, WM_USER, PM_NOREMOVE);
+	if (!SetEvent(hStartEvent_OnFrontConnected))  // set thread start event 
 	{
-		ResetEvent(hEvent[EID_OnRspUserLogin]);
-		WaitForSingleObject(hEvent[EID_OnRspUserLogin], INFINITE);
-
-		CThostFtdcRspUserLoginField   a;
-		memset(&a, 0, sizeof(CThostFtdcRspUserLoginField));
-		outputCallback(&a);
-		/*
-		time_t t = time(0);
-		char tmp[64];
-		strftime(tmp, sizeof(tmp), "%Y/%m/%d %X %A %j  %z", localtime(&t));
-		puts(tmp);
-		*/
+		printf("set start event failed,errno:%d\n", ::GetLastError());
+		return 1;
 	}
+	while (true)
+	{
+		if (GetMessage(&msg, 0, 0, 0))  // get msg from message queue
+		{
+			switch (msg.message)
+			{
+			case MY_MSG:
+			((void(__cdecl *)(void))param)();
+				char * pInfo = (char *)msg.wParam;
+				printf("recv %s\n", pInfo);
+				delete[] pInfo;
+				break;
+			}
+		}
+	};
 }
-void   VNRegOnRspUserLogout(void(*outputCallback)(const int* a))
+unsigned __stdcall MsgThreadOnFrontDisconnected(void *param)
 {
-	hEvent[EID_OnRspUserLogout] = CreateEvent(NULL, FALSE, FALSE, "EID_OnRspUserLogout");
-	ResetEvent(hEvent[EID_OnRspUserLogout]);
-	while (1)
+	MSG msg;
+	::PeekMessage(&msg, NULL, WM_USER, WM_USER, PM_NOREMOVE);
+	if (!::SetEvent(hStartEvent_OnFrontDisconnected)) //set thread start event
 	{
-		ResetEvent(hEvent[EID_OnRspUserLogout]);
-		WaitForSingleObject(hEvent[EID_OnRspUserLogout], INFINITE);
-
-		int a = 1;
-		outputCallback(&a);
-		/*
-		time_t t = time(0);
-		char tmp[64];
-		strftime(tmp, sizeof(tmp), "%Y/%m/%d %X %A %j  %z", localtime(&t));
-		puts(tmp);
-		*/
+		printf("set start event failed,errno:%d\n", ::GetLastError());
+		return 1;
 	}
+	while (true)
+	{
+		if (::GetMessage(&msg, 0, 0, 0)) //get msg from message queue 
+		{
+			switch (msg.message)
+			{
+			case MY_OnFrontDisconnected:
+			{				
+				((void(__cdecl *)(void))param)();
+				char * pInfo = (char *)msg.wParam;
+				printf("Recv MsgOnFrontDisconnected %s\n", pInfo);
+				delete[] pInfo; break;
+
+
+			}
+			}
+		}
+	}
+	return 0;
 }
-
-
-
-
-
-void   VNRegOnRspQryTradingAccount(void(*outputCallback)(const int* a))
+unsigned __stdcall MsgThreadOnRspUserLogin(void *param)
 {
-	hEvent[EID_OnRspQryTradingAccount] = CreateEvent(NULL, FALSE, FALSE, "EID_OnRspQryTradingAccount");
-	ResetEvent(hEvent[EID_OnRspQryTradingAccount]);
-	while (1)
+	MSG msg;
+	::PeekMessage(&msg, NULL, WM_USER, WM_USER, PM_NOREMOVE);
+	if (!::SetEvent(hStartEvent_OnRspUserLogin)) //set thread start event
 	{
-		ResetEvent(hEvent[EID_OnRspQryTradingAccount]);
-		WaitForSingleObject(hEvent[EID_OnRspQryTradingAccount], INFINITE);
-
-		int a = 1;
-		outputCallback(&a);
+		printf("set start event failed,errno:%d\n", ::GetLastError());
+		return 1;
 	}
+	while (true)
+	{
+		if (::GetMessage(&msg, 0, 0, 0)) //get msg from message queue 
+		{
+			switch (msg.message)
+			{
+			case MY_OnRspUserLogin:
+			{
+				((void(__cdecl *)(void))param)();
+				char * pInfo = (char *)msg.wParam;
+				printf("Recv MsgOnRspUserLogin %s\n", pInfo);
+				delete[] pInfo; break;
+			}
+			}
+		}
+	}
+	return 0;
 }
-
-void   VNRegOnRspQryInvestorPosition(void(*outputCallback)(const int* a))
+unsigned __stdcall MsgThreadOnRspUserLogout(void *param)
 {
-	hEvent[EID_OnRspQryInvestorPosition] = CreateEvent(NULL, FALSE, FALSE, "EID_OnRspQryInvestorPosition");
-	ResetEvent(hEvent[EID_OnRspQryInvestorPosition]);
-	while (1)
+	MSG msg;
+	::PeekMessage(&msg, NULL, WM_USER, WM_USER, PM_NOREMOVE);
+	if (!::SetEvent(hStartEvent_OnRspUserLogout)) //set thread start event
 	{
-		ResetEvent(hEvent[EID_OnRspQryInvestorPosition]);
-		WaitForSingleObject(hEvent[EID_OnRspQryInvestorPosition], INFINITE);
-
-		int a = 1;
-		outputCallback(&a);
+		printf("set start event failed,errno:%d\n", ::GetLastError());
+		return 1;
 	}
+	while (true)
+	{
+		if (::GetMessage(&msg, 0, 0, 0)) //get msg from message queue 
+		{
+			switch (msg.message)
+			{
+			 case MY_OnRspUserLogout:
+			 {
+				char * pInfo = (char *)msg.wParam;
+				printf("Recv MsgOnRspUserLogout %s\n", pInfo);
+				delete[] pInfo;
+				pInfo = NULL;
+				((void(__cdecl *)(void))param)();
+				break;
+			 }
+			}
+			Sleep(1);
+		}
+	}
+	return 0;
 }
+
+unsigned __stdcall MsgThreadOnRspQryTradingAccount(void *param)
+{
+	MSG msg;
+	::PeekMessage(&msg, NULL, WM_USER, WM_USER, PM_NOREMOVE);
+	if (!::SetEvent(hStartEvent_OnRspQryTradingAccount)) //set thread start event
+	{
+		printf("set start event failed,errno:%d\n", ::GetLastError());
+		return 1;
+	}
+	while (true)
+	{
+		if (::GetMessage(&msg, 0, 0, 0)) //get msg from message queue 
+		{
+			switch (msg.message)
+			{
+			case MY_OnRspUserLogout:
+			{
+				char * pInfo = (char *)msg.wParam;
+				printf("Recv MsgThreadOnRspQryTradingAccount %s\n", pInfo);
+				delete[] pInfo;
+				pInfo = NULL;
+				((void(__cdecl *)(void))param)();
+				break;
+			}
+			}
+			Sleep(1);
+		}
+	}
+	return 0;
+}
+
+unsigned __stdcall MsgThreadOnRspQryInvestorPosition(void *param)
+{
+	MSG msg;
+	::PeekMessage(&msg, NULL, WM_USER, WM_USER, PM_NOREMOVE);
+	if (!::SetEvent(hStartEvent_OnRspQryInvestorPosition)) //set thread start event
+	{
+		printf("set start event failed,errno:%d\n", ::GetLastError());
+		return 1;
+	}
+	while (true)
+	{
+		if (::GetMessage(&msg, 0, 0, 0)) //get msg from message queue 
+		{
+			switch (msg.message)
+			{
+			case MY_OnRspUserLogout:
+			{
+				char * pInfo = (char *)msg.wParam;
+				printf("Recv MsgThreadOnRspQryInvestorPosition %s\n", pInfo);
+				delete[] pInfo;
+				pInfo = NULL;
+				((void(__cdecl *)(void))param)();
+				break;
+			}
+			}
+			Sleep(1);
+		}
+	}
+	return 0;
+}
+
+unsigned __stdcall MsgThreadOnRtnOrder(void *param)
+{
+	MSG msg;
+	::PeekMessage(&msg, NULL, WM_USER, WM_USER, PM_NOREMOVE);
+	if (!::SetEvent(hStartEvent_OnRtnOrder)) //set thread start event
+	{
+		printf("set start event failed,errno:%d\n", ::GetLastError());
+		return 1;
+	}
+	while (true)
+	{
+		if (::GetMessage(&msg, 0, 0, 0)) //get msg from message queue 
+		{
+			switch (msg.message)
+			{
+			case MY_OnRspUserLogout:
+			{
+				char * pInfo = (char *)msg.wParam;
+				printf("Recv MsgThreadOnRtnOrder %s\n", pInfo);
+				delete[] pInfo;
+				pInfo = NULL;
+				((void(__cdecl *)(void))param)();
+				break;
+			}
+			}
+			Sleep(1);
+		}
+	}
+	return 0;
+}
+ 
+unsigned __stdcall MsgThreadOnRtnTrade(void *param)
+{
+	MSG msg;
+	::PeekMessage(&msg, NULL, WM_USER, WM_USER, PM_NOREMOVE);
+	if (!::SetEvent(hStartEvent_OnRtnOrder)) //set thread start event
+	{
+		printf("set start event failed,errno:%d\n", ::GetLastError());
+		return 1;
+	}
+	while (true)
+	{
+		if (::GetMessage(&msg, 0, 0, 0)) //get msg from message queue 
+		{
+			switch (msg.message)
+			{
+			case MY_OnRspUserLogout:
+			{
+				char * pInfo = (char *)msg.wParam;
+				printf("Recv MsgThreadOnRtnTrade %s\n", pInfo);
+				delete[] pInfo;
+				pInfo = NULL;
+				((void(__cdecl *)(void))param)();
+				break;
+			}
+			}
+			Sleep(1);
+		}
+	}
+	return 0;
+}
+
 
 void  VNRegOnFrontConnected(void(*outputCallback)())
 {
-	hEvent[EID_OnFrontConnected] = CreateEvent(NULL, FALSE, FALSE, "EID_OnFrontConnected");
-	//thread t(test);
-
-	while (1)
+	HANDLE hThread;
+	hStartEvent_OnFrontConnected = ::CreateEvent(0, FALSE, FALSE, 0);  // create thread start event
+	if (hStartEvent_OnFrontConnected == 0)
 	{
-		ResetEvent(hEvent[EID_OnFrontConnected]);
-		WaitForSingleObject(hEvent[EID_OnFrontConnected], INFINITE);
-		outputCallback();
-		/*
-		time_t t = time(0);
-		char tmp[64];
-		strftime(tmp, sizeof(tmp), "%Y/%m/%d %X %A %j  %z", localtime(&t));
-		puts(tmp);
-		*/
-		Sleep(1);
+		printf("create start event failed,errno:%d\n", ::GetLastError());
+		return ;
 	}
-
+	hThread = (HANDLE)_beginthreadex(NULL, 0, &MsgThreadOnFrontConnected, outputCallback, 0, &nThreadID_OnFrontConnected);
+	if (hThread == 0)
+	{
+		printf("start thread failed,errno:%d\n", ::GetLastError());
+		CloseHandle(hStartEvent_OnFrontConnected);
+		return ;
+	}
+	::WaitForSingleObject(hStartEvent_OnFrontConnected, INFINITE);
+	CloseHandle(hStartEvent_OnFrontConnected);
+	::WaitForSingleObject(hThread, INFINITE);
 }
 
 
 void   VNRegOnFrontDisconnected(void(*outputCallback)(int *a))
 {
-	hEvent[EID_OnFrontDisconnected] = CreateEvent(NULL, FALSE, FALSE, "EID_OnFrontDisconnected");
-	//thread t(test);
-	while (1)
+	hStartEvent_OnFrontDisconnected = ::CreateEvent(0, FALSE, FALSE, 0); //create thread start event
+	if (hStartEvent_OnFrontDisconnected == 0)
 	{
-		ResetEvent(hEvent[EID_OnFrontDisconnected]);
-		WaitForSingleObject(hEvent[EID_OnFrontDisconnected], INFINITE);
-		int a = 1;
-		outputCallback(&a);
-		/*
-		time_t t = time(0);
-		char tmp[64];
-		strftime(tmp, sizeof(tmp), "%Y/%m/%d %X %A %j  %z", localtime(&t));
-		puts(tmp);
-		*/
+		printf("create start event failed,errno:%d\n", ::GetLastError());
+		return;
 	}
+	HANDLE hThread = (HANDLE)_beginthreadex(NULL, 0, &MsgThreadOnFrontDisconnected, outputCallback, 0, &nThreadID_OnFrontDisconnected);
+	if (hThread == 0)
+	{
+		printf("start thread failed,errno:%d\n", ::GetLastError());
+		::CloseHandle(hStartEvent_OnFrontDisconnected);
+		return;
+	} 
+	::WaitForSingleObject(hStartEvent_OnFrontDisconnected, INFINITE);
+	::CloseHandle(hStartEvent_OnFrontDisconnected);
+	::WaitForSingleObject(hThread, INFINITE);
+
 }
+
+
+void   VNRegOnRspUserLogin(void(*outputCallback)(const CThostFtdcRspUserLoginField* a))
+{
+	hStartEvent_OnRspUserLogin = ::CreateEvent(0, FALSE, FALSE, 0); //create thread start event
+	if (hStartEvent_OnRspUserLogin == 0)
+	{
+		printf("create start event failed,errno:%d\n", ::GetLastError());
+		return;
+	}
+	HANDLE hThread = (HANDLE)_beginthreadex(NULL, 0, &MsgThreadOnRspUserLogin, outputCallback, 0, &nThreadID_OnRspUserLogin);
+	if (hThread == 0)
+	{
+		printf("start thread failed,errno:%d\n", ::GetLastError());
+		::CloseHandle(hStartEvent_OnRspUserLogin);
+		return;
+	} 
+	::WaitForSingleObject(hStartEvent_OnRspUserLogin, INFINITE);
+	::CloseHandle(hStartEvent_OnRspUserLogin);
+	::WaitForSingleObject(hThread, INFINITE);
+}
+void   VNRegOnRspUserLogout(void(*outputCallback)(const int* a))
+{
+	hStartEvent_OnRspUserLogout = ::CreateEvent(0, FALSE, FALSE, 0); //create thread start event
+	if (hStartEvent_OnRspUserLogout == 0)
+	{
+		printf("create start event failed,errno:%d\n", ::GetLastError());
+		return;
+	}
+	HANDLE hThread = (HANDLE)_beginthreadex(NULL, 0, &MsgThreadOnRspUserLogout, outputCallback, 0, &nThreadID_OnRspUserLogout);
+	if (hThread == 0)
+	{
+		printf("start thread failed,errno:%d\n", ::GetLastError());
+		::CloseHandle(hStartEvent_OnRspUserLogout);
+		return;
+	} 
+	::WaitForSingleObject(hStartEvent_OnRspUserLogout, INFINITE);
+	::CloseHandle(hStartEvent_OnRspUserLogout);
+	::WaitForSingleObject(hThread, INFINITE);
+}
+
+
+void   VNRegOnRspQryTradingAccount(void(*outputCallback)(const int* a))
+{
+	hStartEvent_OnRspQryTradingAccount = ::CreateEvent(0, FALSE, FALSE, 0); //create thread start event
+	if (hStartEvent_OnRspQryTradingAccount == 0)
+	{
+		printf("create start event failed,errno:%d\n", ::GetLastError());
+		return;
+	}
+	HANDLE hThread = (HANDLE)_beginthreadex(NULL, 0, &MsgThreadOnRspQryTradingAccount, outputCallback, 0, &nThreadID_OnRspQryTradingAccount);
+	if (hThread == 0)
+	{
+		printf("start thread failed,errno:%d\n", ::GetLastError());
+		::CloseHandle(hStartEvent_OnRspQryTradingAccount);
+		return;
+	}
+	::WaitForSingleObject(hStartEvent_OnRspQryTradingAccount, INFINITE);
+	::CloseHandle(hStartEvent_OnRspQryTradingAccount);
+	::WaitForSingleObject(hThread, INFINITE);
+}
+
+void   VNRegOnRspQryInvestorPosition(void(*outputCallback)(const int* a))
+{
+	hStartEvent_OnRspQryInvestorPosition = ::CreateEvent(0, FALSE, FALSE, 0); //create thread start event
+	if (hStartEvent_OnRspQryInvestorPosition == 0)
+	{
+		printf("create start event failed,errno:%d\n", ::GetLastError());
+		return;
+	}
+	HANDLE hThread = (HANDLE)_beginthreadex(NULL, 0, &MsgThreadOnRspQryInvestorPosition, outputCallback, 0, &nThreadID_OnRspQryInvestorPosition);
+	if (hThread == 0)
+	{
+		printf("start thread failed,errno:%d\n", ::GetLastError());
+		::CloseHandle(hStartEvent_OnRspQryInvestorPosition);
+		return;
+	}
+	::WaitForSingleObject(hStartEvent_OnRspQryInvestorPosition, INFINITE);
+	::CloseHandle(hStartEvent_OnRspQryInvestorPosition);
+	::WaitForSingleObject(hThread, INFINITE);
+}
+
+void VNRegOnRtnOrder(void(*outputCallback)(CThostFtdcOrderField *pOrder))
+{
+	hStartEvent_OnRtnOrder = ::CreateEvent(0, FALSE, FALSE, 0); //create thread start event
+	if (hStartEvent_OnRtnOrder == 0)
+	{
+		printf("create start event failed,errno:%d\n", ::GetLastError());
+		return;
+	}
+	HANDLE hThread = (HANDLE)_beginthreadex(NULL, 0, &MsgThreadOnRtnOrder, outputCallback, 0, &nThreadID_OnRtnOrder);
+	if (hThread == 0)
+	{
+		printf("start thread failed,errno:%d\n", ::GetLastError());
+		::CloseHandle(hStartEvent_OnRtnOrder);
+		return;
+	}
+	::WaitForSingleObject(hStartEvent_OnRtnOrder, INFINITE);
+	::CloseHandle(hStartEvent_OnRtnOrder);
+	::WaitForSingleObject(hThread, INFINITE);
+}
+
+void VNRegOnRtnTrade(void(*outputCallback)(CThostFtdcTradeField *pTrade))
+{
+	hStartEvent_OnRtnTrade = ::CreateEvent(0, FALSE, FALSE, 0); //create thread start event
+	if (hStartEvent_OnRtnTrade == 0)
+	{
+		printf("create start event failed,errno:%d\n", ::GetLastError());
+		return;
+	}
+	HANDLE hThread = (HANDLE)_beginthreadex(NULL, 0, &MsgThreadOnRtnTrade, outputCallback, 0, &nThreadID_OnRtnTrade);
+	if (hThread == 0)
+	{
+		printf("start thread failed,errno:%d\n", ::GetLastError());
+		::CloseHandle(hStartEvent_OnRtnTrade);
+		return;
+	}
+	::WaitForSingleObject(hStartEvent_OnRtnTrade, INFINITE);
+	::CloseHandle(hStartEvent_OnRtnTrade);
+	::WaitForSingleObject(hThread, INFINITE);
+}
+

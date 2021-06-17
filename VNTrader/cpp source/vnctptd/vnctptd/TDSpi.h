@@ -14,6 +14,8 @@ extern CThostFtdcTraderApi *vntdapi;
 class CTDSpi: public CThostFtdcTraderSpi
 {
 public:
+	int count = 0;
+	void PMsg(unsigned nThreadID, int msg);
 
 	virtual void OnFrontConnected();
 

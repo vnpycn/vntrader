@@ -93,27 +93,29 @@ CTDSpi::~CTDSpi()
 using namespace std;
 
 
-
+bool connect = true;
 bool GState = true;
-DWORD WINAPI PositionThreadProc(void* p)	//更新排名
+DWORD WINAPI QryThreadProc(void* p)	//更新排名
 {
 	while (true)
 	{
-		GState = !GState;
-		if (GState)
+		if (connect)
 		{
-			if(vntdspi)
-				vntdspi->ReqQryInvestorPosition();//查询仓位管理		
+			GState = !GState;
+			if (GState)
+			{
+				if (vntdspi)
+					vntdspi->ReqQryInvestorPosition();//查询仓位管理		
+			}
+			else
+			{
+				if (vntdspi)
+					vntdspi->ReqQryTradingAccount(); //查询资金
+			}
+			//CTP有1S流控，太多的查询会导致查询失败
+			Sleep(1001);
 		}
-		else
-		{
-			if (vntdspi)
-				vntdspi->ReqQryTradingAccount(); //查询资金
-		}
-        //CTP有1S流控，太多的查询会导致查询失败
-		Sleep(1016);
 	}
-
 }
 
 DWORD WINAPI ReqQryInstrumentMarginRateThreadProc(void* p)	//更新排名
@@ -155,7 +157,7 @@ bool CTDSpi::Init()
 		bInitOK = true;
 	}
 	//查询持仓线程
-	HANDLE hThread3 = ::CreateThread(NULL, 0, PositionThreadProc, NULL, 0, NULL);
+	HANDLE hThread3 = ::CreateThread(NULL, 0, QryThreadProc, NULL, 0, NULL);
 	HANDLE hThread4 = ::CreateThread(NULL, 0, ReqQryInstrumentMarginRateThreadProc, NULL, 0, NULL);
 
 	return bInitOK;
@@ -180,10 +182,39 @@ int CTDSpi::ReqUserLogin()
 		return 1;
 	}
 }
+
+void CTDSpi::PMsg(unsigned nThreadID, int msg)
+{
+	char* pInfo = new char[MAX_INFO_SIZE]; //create dynamic msg 
+	sprintf(pInfo, "PMsg msg_%d", ++count);
+	if (!::PostThreadMessage(nThreadID, msg, (WPARAM)pInfo, 0))//post thread msg
+	{
+		printf("2 post message failed, errno:%d\n", ::GetLastError());
+		delete[] pInfo;
+	}
+}
+
+extern unsigned nThreadID;
 void CTDSpi::OnFrontConnected()
 {
+	connect = true;
+
 	std::cout << __FUNCTION__ << std::endl;
-	SetEvent(hEvent[EID_OnFrontConnected]);
+
+
+ 
+	 PMsg(nThreadID_OnFrontConnected, MY_MSG);
+ //MY_OnFrontConnected
+	 /*
+	char* pInfo = new char[MAX_INFO_SIZE]; //create dynamic msg 
+	sprintf(pInfo, "OnFrontConnected");
+	if (!::PostThreadMessage(nThreadID, MY_MSG, (WPARAM)pInfo, 0))//post thread msg
+	{
+		printf("3post(OnFrontConnected) message failed, errno:%d\n", ::GetLastError());
+		delete[] pInfo;
+	}
+	*/
+
 	//认证请求
 	ReqAuthenticate();
 }
@@ -217,17 +248,20 @@ void CTDSpi::OnRspAuthenticate(CThostFtdcRspAuthenticateField *pRspAuthenticateF
 	{
 		std::cout << "OnRspAuthenticate错误\n" << std::endl;
 	}
-	hEvent[EID_OnRspAuthenticate] = CreateEvent(NULL, FALSE, FALSE, "EID_OnRspAuthenticate");
-	SetEvent(hEvent[EID_OnRspAuthenticate]);
+ 
 	ReqUserLogin();
 }
  
-
-
-
 void CTDSpi::OnFrontDisconnected(int nReason)
 {
 	std::cout << __FUNCTION__ << std::endl;
+
+
+	PMsg(nThreadID_OnFrontDisconnected, MY_OnFrontDisconnected);
+
+
+
+	connect = false;
 	SYSTEMTIME t;
 	::GetLocalTime(&t);
 	std::cout << t.wHour << ":" << t.wMinute << ":" << t.wSecond << std::endl;
@@ -236,16 +270,24 @@ void CTDSpi::OnFrontDisconnected(int nReason)
 	::Beep(450, 10000);
 }
 
-
-
-
 void CTDSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
 	if (pRspUserLogin==NULL)
 	{
 		return;
 	}
-	SetEvent(hEvent[EID_OnFrontConnected]);
+
+
+
+
+ 
+	 
+	PMsg(nThreadID_OnRspUserLogin, MY_OnRspUserLogin);
+
+
+
+
+ 
 	ReqSettlementInfoConfirm();
 	std::cout << __FUNCTION__ << std::endl;
 	FRONT_ID = pRspUserLogin->FrontID;
@@ -288,9 +330,22 @@ void CTDSpi::OnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout, CThostFtdcR
 	{
 		return;
 	}
+
+
+
+ 
+	 
+
+	PMsg(nThreadID_OnRspUserLogout, MY_OnRspUserLogout);
+
+
+
+
+
+
+
 	//FRONT_ID = pUserLogout->FrontID;
 	//SESSION_ID = pUserLogout->SessionID;
-	//if (bIsLast)
 	if (bIsLast && !IsErrorRspInfo(pRspInfo))
 	{
 		if (pRspInfo && pRspInfo->ErrorID != 0)
@@ -340,7 +395,6 @@ bool CTDSpi::IsErrorRspInfo(CThostFtdcRspInfoField *pRspInfo)
 	return bResult;
 }
 
-
 void CTDSpi::OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
 	std::cout << __FUNCTION__ << std::endl;
@@ -355,6 +409,19 @@ void CTDSpi::OnRtnOrder(CThostFtdcOrderField *pOrder)
 	{
 		return;
 	}
+
+
+
+ 
+
+	PMsg(nThreadID_OnRtnOrder, MY_OnRtnOrder);
+
+
+
+
+
+ 
+
 	std::cout << __FUNCTION__ << std::endl;
 		int orderRef = ::atoi(pOrder->OrderRef);
 		::WaitForSingleObject(ghTradedVolMutex, INFINITE);
@@ -369,18 +436,20 @@ void CTDSpi::OnRtnTrade(CThostFtdcTradeField *pTrade)
 	{
 		return;
 	}
+
+
+	PMsg(nThreadID_OnRtnTrade, MY_OnRtnTrade);
+
+ 
+
 	std::cout << __FUNCTION__ << std::endl;
 	int orderRef = ::atoi(pTrade->OrderRef);
 	printf("订单成交[%d]\n", orderRef);
-	//
 	/*
 	::WaitForSingleObject(ghTradedVolMutex, INFINITE);
 	gOrderRef2TradedVol[orderRef] = pTrade->VolumeTraded;
 	::ReleaseMutex(ghTradedVolMutex);
 	*/
-	///成交
-
-
 }
 
 //合约交易状态通知
@@ -809,6 +878,18 @@ void CTDSpi::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *pInvestor
 {
 	std::cout << __FUNCTION__ << std::endl;
 
+
+
+
+	 
+
+
+
+
+
+
+
+
 	if (pInvestorPosition == NULL)
 	{
 		errnum++;
@@ -1160,6 +1241,22 @@ void CTDSpi::OnRspQryTradingAccount(CThostFtdcTradingAccountField *pTradingAccou
 	{
 		return;
 	}
+
+
+
+
+
+
+
+
+	 
+
+
+
+
+
+
+
 	if (bIsLast && !IsErrorRspInfo(pRspInfo))
 	{
 		CTradeAcount tn;

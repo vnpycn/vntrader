@@ -24,23 +24,19 @@ extern "C" {
 
 	void VN_EXPORT VNRegOnFrontDisconnected(void(*outputCallback)(int * a));
 
-	//void VN_EXPORT VNRegOnRtnDepthMarketData(void(*outputCallback)(const CThostFtdcDepthMarketDataField* a));
-
 	void VN_EXPORT VNRegOnRspUserLogin(void(*outputCallback)(const CThostFtdcRspUserLoginField * a));
 
 	void VN_EXPORT VNRegOnRspUserLogout(void(*outputCallback)(const int* a));
-
-	//void VN_EXPORT VNRegOnRspUnSubMarketData(void(*outputCallback)(const int* a));
-
-	//void VN_EXPORT VNRegOnRspSubMarketData(void(*outputCallback)(const int* a));
 
 	void VN_EXPORT VNRegOnRspQryInvestorPosition(void(*outputCallback)(const int* a));
 
 	void VN_EXPORT VNRegOnRspQryTradingAccount(void(*outputCallback)(const int* a));
 
- 
-    int VN_EXPORT InitTD();
+	void VN_EXPORT VNRegOnRtnOrder(void(*outputCallback)(CThostFtdcOrderField *pOrder));
 
+	void VN_EXPORT VNRegOnRtnTrade(void(*outputCallback)(CThostFtdcTradeField *pTrade));
+
+    int VN_EXPORT InitTD();
 
 
 
