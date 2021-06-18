@@ -25,7 +25,17 @@ from threading import Thread
 
 global ui
 ui = example_ui.Ui_MainWindow()
-
+class VNDEFTradingAccountField(Structure):
+    _fields_ = [('BrokerID', c_char * 11),  # 经纪公司代码
+                ('InvestorID', c_char * 13),  # 投资者代码
+                ('Prebalance', c_double),  # 合约代码
+                ('Current', c_double),  # 报单引用
+                ('Available', c_double),  # 用户代码
+                ('Rate', c_double),  # 报单价格条件
+                ('Positionrate', c_double),  # 买卖方向
+                ('TradingDay', c_char * 9)
+                ]
+    pass
 # MyCTPTrade类继承自CTPTrader类
 class MyCTPTrade(CTPTrader):
     # 登录回调
@@ -64,7 +74,9 @@ class MyCTPTrade(CTPTrader):
     # 账户资金回调
     def OnRspQryTradingAccount(self, a):
         print("账户资金回调OnRspQryTradingAccount")
-        log_todaytd('账户资金回调OnRspQryTradingAccount')
+
+
+        #update_OnRspQryTradingAccount('账户资金回调OnRspQryTradingAccount')
 
     # 委托回报
     def OnRtnOrder(self, a):
@@ -73,7 +85,6 @@ class MyCTPTrade(CTPTrader):
     # 成交回报
     def OnRtnTrade(self, a):
         log_todaytd('成交回报OnRtnTrade')
-
 
 # MyCTPMarket类继承自CTPMarket类
 class MyCTPMarket(CTPMarket):
@@ -177,8 +188,6 @@ class RegTdThreadOnRtnTrade(Thread):
     def run(self):
         self.td.VNRegOnRtnTrade()
 #---------------------------------------
-
-
 class RegMdThreadOnFrontConnected(Thread):
     def __init__(self, name, md):
         super().__init__()
@@ -221,6 +230,19 @@ class RegMdThreadOnRtnDepthMarketData(Thread):
     def run(self):
         self.md.VNRegOnRtnDepthMarketData()
 
+
+def update_OnRspQryTradingAccount(mystr):
+    '''
+    _translate = QtCore.QCoreApplication.translate
+    item = QtWidgets.QListWidgetItem()
+    ui.Tdloglist.addItem(item)
+    item = ui.Tdloglist.item(ui.Tdloglist.count() - 1)
+    tstr = time.strftime("%Y-%m-%d %H:%M:%S ", time.localtime())
+    item.setText(_translate("MainWindow", tstr + mystr))
+    '''
+    print(mystr.contents.TradingDay, mystr.contents.Available)
+    pass
+
 def log_todaytd(mystr):
     _translate = QtCore.QCoreApplication.translate
     item = QtWidgets.QListWidgetItem()
@@ -239,16 +261,14 @@ def log_todaymd(mystr):
 
 def function_td(td, tname):
     RegTdThreadOnFrontConnected('OnFrontConnected', td).start()
-    '''
     RegTdThreadOnFrontDisconnected('OnFrontDisconnected', td).start()
-
     RegTdThreadOnRspUserLogin('OnRspUserLogin', td).start()
     RegTdThreadOnRspUserLogout('OnRspUserLogout', td).start()
     RegTdThreadOnRspQryInvestorPosition('OnRspQryInvestorPosition', td).start()
     RegTdThreadOnRspQryTradingAccount('OnRspQryTradingAccount', td).start()
     RegTdThreadOnRtnOrder('OnRspQryInvestorPosition', td).start()
     RegTdThreadOnRtnTrade('OnRspQryInvestorPosition', td).start()
-    '''
+
     time.sleep(1)
     td.InitTD()
     print("InitTD")
@@ -432,8 +452,8 @@ def main():
     tt = TDThread('tt')
     tt.start()
 
-    #tm = MDThread('tm')
-    #tm.start()
+    tm = MDThread('tm')
+    tm.start()
     app.exec_()
     os._exit(1)
 

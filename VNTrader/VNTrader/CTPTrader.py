@@ -2,7 +2,20 @@
 import time
 from CTPTraderType import *
 from ctypes import *
-# 官方网站：http://www.quicklib.cn
+
+
+class VNDEFTradingAccountField(Structure):
+    _fields_ = [('BrokerID', c_char * 11),  # 经纪公司代码
+                ('InvestorID', c_char * 13),  # 投资者代码
+                ('Prebalance', c_double),  # 合约代码
+                ('Current', c_double),  # 报单引用
+                ('Available', c_double),  # 用户代码
+                ('Rate', c_double),  # 报单价格条件
+                ('Positionrate', c_double),  # 买卖方向
+                ('TradingDay', c_char * 9)
+                ]
+    pass
+
 class CTPTrader(object):
     def __init__(self):
         self.vntd = CDLL('vnctptd.dll')
@@ -115,6 +128,13 @@ class CTPTrader(object):
 
 
 
+    # 建立连接回调
+    def OnFrontConnected(self):
+        pass
+
+    # 断开连接回调
+    def OnFrontDisconnected(self, a):
+        pass
 
     #登录回调
     def OnRspUserLogin(self, a):
@@ -124,20 +144,14 @@ class CTPTrader(object):
     def OnRspUserLogout(self, a):
         pass
 
-    # 建立连接回调
-    def OnFrontConnected(self):
-        pass
-
-    # 断开连接回调
-    def OnFrontDisconnected(self, a):
-        pass
-
     # 请求查询投资者持仓响应
     def OnRspQryInvestorPosition(self, a):
         pass
 
     # 账户资金回调
     def OnRspQryTradingAccount(self, a):
+        print("-----------------%s %d\n"%a.contents.TradingDay, a.contents.Available)
+        print(a.contents.TradingDay, a.contents.Available)
         pass
 
     # 委托回报
@@ -171,11 +185,11 @@ class CTPTrader(object):
     # 注册Python的OnRspQryInvestorPosition回调函数指针，对应CTP c++的OnRspQryInvestorPosition方法
     def VNRegOnRspQryInvestorPosition(self):
         CMPFUNC = CFUNCTYPE(None, c_void_p)
-        self.vntd.VNRegOnRspQryTradingAccount(CMPFUNC(self.OnRspQryInvestorPosition))
+        self.vntd.VNRegOnRspQryInvestorPosition(CMPFUNC(self.OnRspQryInvestorPosition))
 
     # 注册Python的OnRspQryTradingAccount回调函数指针，对应CTP c++的OnRspQryTradingAccount方法
     def VNRegOnRspQryTradingAccount(self):
-        CMPFUNC = CFUNCTYPE(None, c_void_p)
+        CMPFUNC = CFUNCTYPE(None, POINTER(VNDEFTradingAccountField))
         self.vntd.VNRegOnRspQryTradingAccount(CMPFUNC(self.OnRspQryTradingAccount))
 
     # 注册Python的OnRtnOrder回调函数指针，对应CTP c++的OnRtnOrder方法

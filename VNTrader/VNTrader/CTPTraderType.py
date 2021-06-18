@@ -1,6 +1,21 @@
 ﻿# -*- coding=utf-8 -*-
 from ctypes import *
 
+
+class VNDEFTradingAccountField(Structure):
+    _fields_ = [('BrokerID', c_char * 11),  # 经纪公司代码
+                ('InvestorID', c_char * 13),  # 投资者代码
+                ('Prebalance', c_double),  # 合约代码
+                ('Current', c_double),  # 报单引用
+                ('Available', c_double),  # 用户代码
+                ('Rate', c_double),  # 报单价格条件
+                ('Positionrate', c_double),  # 买卖方向
+                ('TradingDay', c_char * 9)
+                ]
+    pass
+
+
+
 class VNCThostFtdcOrderField(Structure):
     _fields_ = [('BrokerID', c_char * 11),  # 经纪公司代码
                 ('InvestorID', c_char * 13),  # 投资者代码

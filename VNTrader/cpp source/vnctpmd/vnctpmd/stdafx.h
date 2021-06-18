@@ -31,40 +31,59 @@ struct cmdcontent
 	int cmd;
 	char content[31];
 };
-#define MAX_EVENTNUM  64
 
 
-//回调类型
-#define SYSTEM_EMPTY                  8000 //无
-#define SYSTEM_LOGIN_SCUESS           8001 //登录成功
-#define SYSTEM_LOGIN_DENIED           8002 //登录被拒绝
-//#define SYSTEM_LOGIN_ERRORPASSWORD  8003 //密码错误 ??
-#define SYSTEM_LOGINOUT_SCUESS        8004 //登出成功
-#define SYSTEM_NETCONNECT_SCUESS      8005 //连接成功
-#define SYSTEM_NETCONNECT_BREAK       8006 //断开连接
-#define SYSTEM_NETCONNECT_FAILER      8007 //连接失败 ??
-#define SYSTEM_SUBCRIBE_SCUESS        8008 //订阅成功
-#define SYSTEM_UNSUBCRIBE_SCUESS      8009 //取消订阅成功
-#define SYSTEM_NEWTICK                8010 //新Tick到来
-#define SYSTEM_SYSTEM_ERROR           8011 //错误应答
-#define SYSTEM_QRY_FORQUOTE           8012 //
-//#define SYSTEM_LOG                    8013 //日志
+
+
 struct TThostFtdcInstrumentIDTypeStruct
 {
 	TThostFtdcInstrumentIDType Instrument;
 };
 
- 
 
-#define  EID_OnFrontConnected      0
-#define  EID_OnFrontDisconnected   1
-#define  EID_OnRspUserLogin        2
-//#define  EID_OnRspUserLogin_Scuess 3
-//#define  EID_OnRspUserLogin_Failer 2
-//#define  EID_OnRspUserLogin_Scuess 3
-#define  EID_OnRtnDepthMarketData  4
-#define  EID_IsErrorRspInfo        5
-#define  EID_OnRspSubMarketData    6
-#define  EID_OnRspUnSubMarketData  7
-#define  EID_OnRspUserLogout       8
-#define  EID_OnRspForQuote         9
+const int MAX_INFO_SIZE = 20;
+#define MY_OnFrontConnected             WM_USER + 101
+#define MY_OnFrontDisconnected          WM_USER + 102
+#define MY_OnRspUserLogin               WM_USER + 103
+#define MY_OnRspUserLogout              WM_USER + 104
+#define MY_OnRspQryInvestorPosition     WM_USER + 105
+#define MY_OnRspQryTradingAccount       WM_USER + 106
+#define MY_OnRtnOrder                   WM_USER + 107
+#define MY_OnRtnTrade                   WM_USER + 108
+#define MY_OnRtnDepthMarketData         WM_USER + 109
+#define MY_OnRspSubMarketData           WM_USER + 110
+#define MY_OnRspUnSubMarketData         WM_USER + 111
+#define MY_OnRspForQuote                WM_USER + 112
+#define MY_OnRspAuthenticate            WM_USER + 113
+#define MY_IsErrorRspInfo               WM_USER + 114
+
+
+
+extern HANDLE hStartEvent_OnFrontConnected;
+extern HANDLE hStartEvent_OnFrontDisconnected;
+extern HANDLE hStartEvent_OnRspUserLogin;
+extern HANDLE hStartEvent_OnRspUserLogout;
+extern HANDLE hStartEvent_OnRspQryInvestorPosition;
+extern HANDLE hStartEvent_OnRspQryTradingAccount;
+extern HANDLE hStartEvent_OnRtnOrder;
+extern HANDLE hStartEvent_OnRtnTrade;
+
+extern HANDLE hStartEvent_OnRspSubMarketData;
+extern HANDLE hStartEvent_OnRspUnSubMarketData;
+extern HANDLE hStartEvent_OnRtnDepthMarketData;
+
+
+
+
+extern unsigned nThreadID_OnFrontConnected;
+extern unsigned nThreadID_OnFrontDisconnected;
+extern unsigned nThreadID_OnRspUserLogin;
+extern unsigned nThreadID_OnRspUserLogout;
+extern unsigned nThreadID_OnRspQryInvestorPosition;
+extern unsigned nThreadID_OnRspQryTradingAccount;
+extern unsigned nThreadID_OnRtnOrder;
+extern unsigned nThreadID_OnRtnTrade;
+
+extern unsigned nThreadID_OnRspSubMarketData;
+extern unsigned nThreadID_OnRspUnSubMarketData;
+extern unsigned nThreadID_OnRtnDepthMarketData;

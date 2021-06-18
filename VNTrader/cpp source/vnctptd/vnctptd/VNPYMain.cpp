@@ -28,31 +28,34 @@ std::map<int, int> gOrderRef2TradedVol;
 bool showpositionstate=false;
 extern CTDSpi *vntdspi;
 
+#include <windows.h>
+#include <cstdio>
+#include <process.h>
 
-HANDLE hEvent[MAX_EVENTNUM] =
-{
-	NULL,  NULL,  NULL,  NULL,  NULL,  NULL,  NULL,  NULL,
-	NULL,  NULL,  NULL,  NULL,  NULL,  NULL,  NULL,  NULL,
-	NULL,  NULL,  NULL,  NULL,  NULL,  NULL,  NULL,  NULL,
-	NULL,  NULL,  NULL,  NULL,  NULL,  NULL,  NULL,  NULL,
-	NULL,  NULL,  NULL,  NULL,  NULL,  NULL,  NULL,  NULL,
-	NULL,  NULL,  NULL,  NULL,  NULL,  NULL,  NULL,  NULL,
-	NULL,  NULL,  NULL,  NULL,  NULL,  NULL,  NULL,  NULL,
-	NULL,  NULL,  NULL,  NULL,  NULL,  NULL,  NULL,  NULL
 
-};
+
+
+//#define MY_MSG WM_USER+100
+unsigned nThreadID_OnFrontConnected;
+unsigned nThreadID_OnFrontDisconnected;
+unsigned nThreadID_OnRspUserLogin;
+unsigned nThreadID_OnRspUserLogout;
+unsigned nThreadID_OnRspQryInvestorPosition;
+unsigned nThreadID_OnRspQryTradingAccount;
+unsigned nThreadID_OnRtnOrder;
+unsigned nThreadID_OnRtnTrade;
+
+HANDLE hStartEvent_OnFrontConnected;
+HANDLE hStartEvent_OnFrontDisconnected;
+HANDLE hStartEvent_OnRspUserLogin;
+HANDLE hStartEvent_OnRspUserLogout;
+HANDLE hStartEvent_OnRspQryInvestorPosition;
+HANDLE hStartEvent_OnRspQryTradingAccount;
+HANDLE hStartEvent_OnRtnOrder;
+HANDLE hStartEvent_OnRtnTrade;
 
 void Start()
 {	 
-	for (int i = 0; i < MAX_EVENTNUM; i++)
-	{
-		if (!hEvent[i])
-		{
-			char temp[10] = { 0 };
-			_snprintf_s(temp, sizeof(temp), sizeof(temp), "hEvent%d", i);
-			hEvent[i] = CreateEvent(NULL, FALSE, FALSE, temp);
-		}
-	}
 	//InitializeCriticalSection(&g_csdata);
 	ghTradedVolMutex = ::CreateMutex(NULL, FALSE, NULL);
 }
@@ -85,9 +88,6 @@ extern std::map<std::string, double> gCommissionRate;
 
 //查询最大报单数量
 extern std::map<std::string, int> gMaxOrderVolume;
-
-
-
 
 extern int	Trade_dataA_Amount_B_Today[TYPE_NUM];		//多单持仓
 extern int	Trade_dataA_Amount_B_History[TYPE_NUM];		//多单持仓
@@ -125,7 +125,6 @@ extern std::map<std::string, int> gTypeCheckState_B_History;
 
 int VN_EXPORT QryQueryMaxOrderVolume(char *BrokerID, char * InvestorID, char * Instrument, char * Direction, char * OffsetFlag, char * HedgeFlag, int MaxVolume)
 {
-
 	return 1;
 }
 int InsertOrderByRate(char *Instrument, char direction, char offsetFlag, char priceType, double price, double rate, bool BalanceType,int multiplier)
@@ -222,8 +221,6 @@ double QryUnderlyingMultiple(char *Instrument)
 	int num = 0;
 	while (num<30)
 	{
- 
-
 			if (gUnderlyingMultiple.find(Instrument) != gUnderlyingMultiple.end())
 			{
 				//printf("乘数:%0.02f\n\n", gUnderlyingMultiple[Instrument]);
@@ -922,38 +919,6 @@ int InitTD()
 	return 0;
 }
 
-
-
-
-
-unsigned nThreadID_OnFrontConnected;
-unsigned nThreadID_OnFrontDisconnected;
-unsigned nThreadID_OnRspUserLogin;
-unsigned nThreadID_OnRspUserLogout;
-unsigned nThreadID_OnRspQryInvestorPosition;
-unsigned nThreadID_OnRspQryTradingAccount;
-unsigned nThreadID_OnRtnOrder;
-unsigned nThreadID_OnRtnTrade;
-
-
-
-HANDLE hStartEvent_OnFrontConnected;
-HANDLE hStartEvent_OnFrontDisconnected;
-HANDLE hStartEvent_OnRspUserLogin;
-HANDLE hStartEvent_OnRspUserLogout;
-HANDLE hStartEvent_OnRspQryInvestorPosition;
-HANDLE hStartEvent_OnRspQryTradingAccount;
-HANDLE hStartEvent_OnRtnOrder;
-HANDLE hStartEvent_OnRtnTrade;
-
-#include <windows.h>
-#include <cstdio>
-#include <process.h>
-
-#define MY_MSG WM_USER+100
-
-
-
 unsigned __stdcall MsgThreadOnFrontConnected(void *param)
 {
 	MSG msg;
@@ -969,11 +934,9 @@ unsigned __stdcall MsgThreadOnFrontConnected(void *param)
 		{
 			switch (msg.message)
 			{
-			case MY_MSG:
-			((void(__cdecl *)(void))param)();
-				char * pInfo = (char *)msg.wParam;
-				printf("recv %s\n", pInfo);
-				delete[] pInfo;
+			case MY_OnFrontConnected:
+			    ((void(__cdecl *)(void))param)();
+				 printf("recv MY_OnFrontConnected\n");
 				break;
 			}
 		}
@@ -996,12 +959,12 @@ unsigned __stdcall MsgThreadOnFrontDisconnected(void *param)
 			{
 			case MY_OnFrontDisconnected:
 			{				
-				((void(__cdecl *)(void))param)();
-				char * pInfo = (char *)msg.wParam;
-				printf("Recv MsgOnFrontDisconnected %s\n", pInfo);
-				delete[] pInfo; break;
+				int reason = (int)msg.wParam;
+				((void(__cdecl *)(int a))param)(reason);
 
-
+				printf ("Recv MsgOnFrontDisconnected %d\n", reason);
+				break;
+		 
 			}
 			}
 		}
@@ -1025,10 +988,11 @@ unsigned __stdcall MsgThreadOnRspUserLogin(void *param)
 			{
 			case MY_OnRspUserLogin:
 			{
-				((void(__cdecl *)(void))param)();
-				char * pInfo = (char *)msg.wParam;
-				printf("Recv MsgOnRspUserLogin %s\n", pInfo);
-				delete[] pInfo; break;
+				CThostFtdcRspUserLoginField *pRspUserLogin = (CThostFtdcRspUserLoginField *)msg.wParam;
+				printf("Recv MsgOnRspUserLogin %s %s\n", pRspUserLogin->BrokerID, pRspUserLogin->UserID);
+				((void(__cdecl *)(const CThostFtdcRspUserLoginField * a))param)(pRspUserLogin);
+				delete[] pRspUserLogin; break;
+				break;
 			}
 			}
 		}
@@ -1052,11 +1016,11 @@ unsigned __stdcall MsgThreadOnRspUserLogout(void *param)
 			{
 			 case MY_OnRspUserLogout:
 			 {
-				char * pInfo = (char *)msg.wParam;
-				printf("Recv MsgOnRspUserLogout %s\n", pInfo);
-				delete[] pInfo;
-				pInfo = NULL;
+				CThostFtdcUserLogoutField * pUserLogout  = (CThostFtdcUserLogoutField *)msg.wParam;
+				printf("Recv MsgOnRspUserLogout %s %s\n", pUserLogout->BrokerID, pUserLogout->UserID);
 				((void(__cdecl *)(void))param)();
+				delete[] pUserLogout;
+				pUserLogout = NULL;
 				break;
 			 }
 			}
@@ -1081,13 +1045,16 @@ unsigned __stdcall MsgThreadOnRspQryTradingAccount(void *param)
 		{
 			switch (msg.message)
 			{
-			case MY_OnRspUserLogout:
+			case MY_OnRspQryTradingAccount:
 			{
+				//void   VNRegOnRspQryTradingAccount(void(*outputCallback)(const CThostFtdcTradingAccountField *pTradingAccount))
+
+				((void(__cdecl *)(const VNDEFTradeAcount *pTradingAccount))param)(0);
+				 
 				char * pInfo = (char *)msg.wParam;
 				printf("Recv MsgThreadOnRspQryTradingAccount %s\n", pInfo);
 				delete[] pInfo;
 				pInfo = NULL;
-				((void(__cdecl *)(void))param)();
 				break;
 			}
 			}
@@ -1112,7 +1079,7 @@ unsigned __stdcall MsgThreadOnRspQryInvestorPosition(void *param)
 		{
 			switch (msg.message)
 			{
-			case MY_OnRspUserLogout:
+			case MY_OnRspQryInvestorPosition:
 			{
 				char * pInfo = (char *)msg.wParam;
 				printf("Recv MsgThreadOnRspQryInvestorPosition %s\n", pInfo);
@@ -1143,7 +1110,7 @@ unsigned __stdcall MsgThreadOnRtnOrder(void *param)
 		{
 			switch (msg.message)
 			{
-			case MY_OnRspUserLogout:
+			case MY_OnRtnOrder:
 			{
 				char * pInfo = (char *)msg.wParam;
 				printf("Recv MsgThreadOnRtnOrder %s\n", pInfo);
@@ -1174,7 +1141,7 @@ unsigned __stdcall MsgThreadOnRtnTrade(void *param)
 		{
 			switch (msg.message)
 			{
-			case MY_OnRspUserLogout:
+			case MY_OnRtnTrade:
 			{
 				char * pInfo = (char *)msg.wParam;
 				printf("Recv MsgThreadOnRtnTrade %s\n", pInfo);
@@ -1189,7 +1156,6 @@ unsigned __stdcall MsgThreadOnRtnTrade(void *param)
 	}
 	return 0;
 }
-
 
 void  VNRegOnFrontConnected(void(*outputCallback)())
 {
@@ -1212,8 +1178,7 @@ void  VNRegOnFrontConnected(void(*outputCallback)())
 	::WaitForSingleObject(hThread, INFINITE);
 }
 
-
-void   VNRegOnFrontDisconnected(void(*outputCallback)(int *a))
+void   VNRegOnFrontDisconnected(void(*outputCallback)(int a))
 {
 	hStartEvent_OnFrontDisconnected = ::CreateEvent(0, FALSE, FALSE, 0); //create thread start event
 	if (hStartEvent_OnFrontDisconnected == 0)
@@ -1234,7 +1199,6 @@ void   VNRegOnFrontDisconnected(void(*outputCallback)(int *a))
 
 }
 
-
 void   VNRegOnRspUserLogin(void(*outputCallback)(const CThostFtdcRspUserLoginField* a))
 {
 	hStartEvent_OnRspUserLogin = ::CreateEvent(0, FALSE, FALSE, 0); //create thread start event
@@ -1254,7 +1218,7 @@ void   VNRegOnRspUserLogin(void(*outputCallback)(const CThostFtdcRspUserLoginFie
 	::CloseHandle(hStartEvent_OnRspUserLogin);
 	::WaitForSingleObject(hThread, INFINITE);
 }
-void   VNRegOnRspUserLogout(void(*outputCallback)(const int* a))
+void   VNRegOnRspUserLogout(void(*outputCallback)(const CThostFtdcUserLogoutField * a))
 {
 	hStartEvent_OnRspUserLogout = ::CreateEvent(0, FALSE, FALSE, 0); //create thread start event
 	if (hStartEvent_OnRspUserLogout == 0)
@@ -1275,7 +1239,7 @@ void   VNRegOnRspUserLogout(void(*outputCallback)(const int* a))
 }
 
 
-void   VNRegOnRspQryTradingAccount(void(*outputCallback)(const int* a))
+void   VNRegOnRspQryTradingAccount(void(*outputCallback)(const VNDEFTradeAcount *pTradingAccount))
 {
 	hStartEvent_OnRspQryTradingAccount = ::CreateEvent(0, FALSE, FALSE, 0); //create thread start event
 	if (hStartEvent_OnRspQryTradingAccount == 0)
@@ -1354,4 +1318,3 @@ void VNRegOnRtnTrade(void(*outputCallback)(CThostFtdcTradeField *pTrade))
 	::CloseHandle(hStartEvent_OnRtnTrade);
 	::WaitForSingleObject(hThread, INFINITE);
 }
-

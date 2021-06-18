@@ -831,34 +831,37 @@ struct Mdata
  int  processid;        //进程ID
  char InstrumentID[10]; //品种
 };
-HANDLE hEvent[MAX_EVENTNUM] =
-{
-	NULL,  NULL,  NULL,  NULL,  NULL,  NULL,  NULL,  NULL,
-	NULL,  NULL,  NULL,  NULL,  NULL,  NULL,  NULL,  NULL,
-	NULL,  NULL,  NULL,  NULL,  NULL,  NULL,  NULL,  NULL,
-	NULL,  NULL,  NULL,  NULL,  NULL,  NULL,  NULL,  NULL,
-	NULL,  NULL,  NULL,  NULL,  NULL,  NULL,  NULL,  NULL,
-	NULL,  NULL,  NULL,  NULL,  NULL,  NULL,  NULL,  NULL,
-	NULL,  NULL,  NULL,  NULL,  NULL,  NULL,  NULL,  NULL,
-	NULL,  NULL,  NULL,  NULL,  NULL,  NULL,  NULL,  NULL
-
-};
 
 
+unsigned nThreadID_OnFrontConnected;
+unsigned nThreadID_OnFrontDisconnected;
+unsigned nThreadID_OnRspUserLogin;
+unsigned nThreadID_OnRspUserLogout;
+unsigned nThreadID_OnRspQryInvestorPosition;
+unsigned nThreadID_OnRspQryTradingAccount;
+unsigned nThreadID_OnRtnOrder;
+unsigned nThreadID_OnRtnTrade;
+
+unsigned nThreadID_OnRspSubMarketData;
+unsigned nThreadID_OnRspUnSubMarketData;
+unsigned nThreadID_OnRtnDepthMarketData;
+
+
+HANDLE hStartEvent_OnFrontConnected;
+HANDLE hStartEvent_OnFrontDisconnected;
+HANDLE hStartEvent_OnRspUserLogin;
+HANDLE hStartEvent_OnRspUserLogout;
+HANDLE hStartEvent_OnRspQryInvestorPosition;
+HANDLE hStartEvent_OnRspQryTradingAccount;
+HANDLE hStartEvent_OnRtnOrder;
+HANDLE hStartEvent_OnRtnTrade;
+
+HANDLE hStartEvent_OnRspSubMarketData;
+HANDLE hStartEvent_OnRspUnSubMarketData;
+HANDLE hStartEvent_OnRtnDepthMarketData;
 bool Start()
 {
-	for (int i = 0; i < MAX_EVENTNUM; i++)
-	{
-		if (!hEvent[i])
-		{
-			char temp[10] = { 0 };
-			_snprintf_s(temp, sizeof(temp), sizeof(temp), "hEvent%d", i);
-			hEvent[i] = CreateEvent(NULL, FALSE, FALSE, temp);
-		}
 
-	}
-
-	
 
 	ReadTradeTime();
 
@@ -1677,165 +1680,6 @@ void Subscribe2(const char *InstrumentID, int periodtype1, int periodtype2)
 
 	printf("(并设置了2个周期)\n");
 }
-void Subscribe3(const char *InstrumentID, int periodtype1, int periodtype2, int periodtype3)
-{
-	//char * crcvalue = NULL;
-	PERIODTYPE pt;
-	pt.periodtype[0] = periodtype1;
-	pt.periodtype[1] = periodtype2;
-	pt.periodtype[2] = periodtype3;
-	pt.periodtype[3] = NULL;
-	pt.periodtype[4] = NULL;
-	pt.periodtype[5] = NULL;
-	pt.periodtype[6] = NULL;
-	pt.periodtype[7] = NULL;
-	Add(InstrumentID, &pt);
-	ppInstrumentID[amount] = new TThostFtdcInstrumentIDType;
-	::strcpy_s(ppInstrumentID[amount], sizeof(TThostFtdcInstrumentIDType), InstrumentID);
-	//::strcpy_s(ppInstrumentID[amount],sizeof(ppInstrumentID[amount]), contract);
-	gMarket[InstrumentID] = amount;
-	//data[amount] = new CThostFtdcDepthMarketDataField;
-	depthdata[amount] = new CThostFtdcDepthMarketDataField;
-	++amount;
-	gMDSpi.SubscribeMarketData();
-
-	printf("(并设置了3个周期)\n");
-}
-
-void Subscribe4(const char *InstrumentID, int periodtype1, int periodtype2, int periodtype3, int periodtype4)
-{
-	//char * crcvalue = NULL;
-	PERIODTYPE pt;
-	pt.periodtype[0] = periodtype1;
-	pt.periodtype[1] = periodtype2;
-	pt.periodtype[2] = periodtype3;
-	pt.periodtype[3] = periodtype4;
-	pt.periodtype[4] = NULL;
-	pt.periodtype[5] = NULL;
-	pt.periodtype[6] = NULL;
-	pt.periodtype[7] = NULL;
-	Add(InstrumentID, &pt);
-	//else
-	//{
-	//printf("NONE ADD %s\n", contract);
-
-	//}
-	//printf("pass %s", contract);
-	ppInstrumentID[amount] = new TThostFtdcInstrumentIDType;
-	::strcpy_s(ppInstrumentID[amount], sizeof(TThostFtdcInstrumentIDType), InstrumentID);
-	//::strcpy_s(ppInstrumentID[amount],sizeof(ppInstrumentID[amount]), contract);
-	gMarket[InstrumentID] = amount;
-	//data[amount] = new CThostFtdcDepthMarketDataField;
-	depthdata[amount] = new CThostFtdcDepthMarketDataField;
-	++amount;
-	gMDSpi.SubscribeMarketData();
-	printf("(并设置了4个周期)\n");
-}
-
-void Subscribe5(const char *InstrumentID, int periodtype1, int periodtype2, int periodtype3, int periodtype4, int periodtype5)
-{
-	//char * crcvalue = NULL;
-	PERIODTYPE pt;
-	pt.periodtype[0] = periodtype1;
-	pt.periodtype[1] = periodtype2;
-	pt.periodtype[2] = periodtype3;
-	pt.periodtype[3] = periodtype4;
-	pt.periodtype[4] = periodtype5;
-	pt.periodtype[5] = NULL;
-	pt.periodtype[6] = NULL;
-	pt.periodtype[7] = NULL;
-	Add(InstrumentID, &pt);
-	//else
-	//{
-	//printf("NONE ADD %s\n", contract);
-
-	//}
-	//printf("pass %s", contract);
-	ppInstrumentID[amount] = new TThostFtdcInstrumentIDType;
-	::strcpy_s(ppInstrumentID[amount], sizeof(TThostFtdcInstrumentIDType), InstrumentID);
-	//::strcpy_s(ppInstrumentID[amount],sizeof(ppInstrumentID[amount]), contract);
-	gMarket[InstrumentID] = amount;
-	//data[amount] = new CThostFtdcDepthMarketDataField;
-	depthdata[amount] = new CThostFtdcDepthMarketDataField;
-	++amount;
-	gMDSpi.SubscribeMarketData();
-	printf("(并设置了5个周期)\n");
-}
-
-void Subscribe6(const char *InstrumentID, int periodtype1, int periodtype2, int periodtype3, int periodtype4, int periodtype5, int periodtype6)
-{
-	//char * crcvalue = NULL;
-	PERIODTYPE pt;
-	pt.periodtype[0] = periodtype1;
-	pt.periodtype[1] = periodtype2;
-	pt.periodtype[2] = periodtype3;
-	pt.periodtype[3] = periodtype4;
-	pt.periodtype[4] = periodtype5;
-	pt.periodtype[5] = periodtype6;
-	pt.periodtype[6] = NULL;
-	pt.periodtype[7] = NULL;
-	Add(InstrumentID, &pt);
-	ppInstrumentID[amount] = new TThostFtdcInstrumentIDType;
-	::strcpy_s(ppInstrumentID[amount], sizeof(TThostFtdcInstrumentIDType), InstrumentID);
-	//::strcpy_s(ppInstrumentID[amount],sizeof(ppInstrumentID[amount]), contract);
-	gMarket[InstrumentID] = amount;
-	depthdata[amount] = new CThostFtdcDepthMarketDataField;
-	++amount;
-	gMDSpi.SubscribeMarketData();
-	printf("(并设置了6个周期)\n");
-}
-
-void Subscribe7(const char *InstrumentID, int periodtype1, int periodtype2, int periodtype3, int periodtype4, int periodtype5, int periodtype6, int periodtype7)
-{
-	//char * crcvalue = NULL;
-
-	PERIODTYPE pt;
-	pt.periodtype[0] = periodtype1;
-	pt.periodtype[1] = periodtype2;
-	pt.periodtype[2] = periodtype3;
-	pt.periodtype[3] = periodtype4;
-	pt.periodtype[4] = periodtype5;
-	pt.periodtype[5] = periodtype6;
-	pt.periodtype[6] = periodtype7;
-	pt.periodtype[7] = NULL;
-	Add(InstrumentID, &pt);
-	//printf("pass %s", contract);
-	ppInstrumentID[amount] = new TThostFtdcInstrumentIDType;
-	::strcpy_s(ppInstrumentID[amount], sizeof(TThostFtdcInstrumentIDType), InstrumentID);
-	//::strcpy_s(ppInstrumentID[amount],sizeof(ppInstrumentID[amount]), contract);
-	gMarket[InstrumentID] = amount;
-	depthdata[amount] = new CThostFtdcDepthMarketDataField;
-	++amount;
-	gMDSpi.SubscribeMarketData();
-	printf("(并设置了7个周期)\n");
-
-
-}
-
-
-void Subscribe8(const char *InstrumentID, int periodtype1, int periodtype2, int periodtype3, int periodtype4, int periodtype5, int periodtype6, int periodtype7, int periodtype8)
-{
-	//char * crcvalue = NULL;
-	PERIODTYPE pt;
-	pt.periodtype[0] = periodtype1;
-	pt.periodtype[1] = periodtype2;
-	pt.periodtype[2] = periodtype3;
-	pt.periodtype[3] = periodtype4;
-	pt.periodtype[4] = periodtype5;
-	pt.periodtype[5] = periodtype6;
-	pt.periodtype[6] = periodtype7;
-	pt.periodtype[7] = periodtype8;
-	Add(InstrumentID, &pt);
-	//printf("pass %s", contract);
-	ppInstrumentID[amount] = new TThostFtdcInstrumentIDType;
-	::strcpy_s(ppInstrumentID[amount], sizeof(TThostFtdcInstrumentIDType), InstrumentID);
-	//::strcpy_s(ppInstrumentID[amount],sizeof(ppInstrumentID[amount]), contract);
-	gMarket[InstrumentID] = amount;
-	depthdata[amount] = new CThostFtdcDepthMarketDataField;
-	++amount;
-	gMDSpi.SubscribeMarketData();
-	printf(",并设置了8个周期\n");
-}
 
 /*
 int Test_MA()
@@ -2508,174 +2352,353 @@ void VN_EXPORT SetPrintState(bool printfstate)
 
 }
 
- 
 
-void  test()
+
+unsigned __stdcall MsgThreadOnFrontConnected(void *param)
 {
-
-
-	while (1)
+	MSG msg;
+	PeekMessage(&msg, NULL, WM_USER, WM_USER, PM_NOREMOVE);
+	if (!SetEvent(hStartEvent_OnFrontConnected))  // set thread start event 
 	{
-		cout << "start\n" << endl;
-
-		Sleep(10000);
-		SetEvent(hEvent[EID_OnFrontConnected]);
-		// SetEvent(hEvent[EID_IsErrorRspInfo]);
-
-		cout << "end\n" << endl;
-
+		printf("set start event failed,errno:%d\n", ::GetLastError());
+		return 1;
 	}
-
+	while (true)
+	{
+		if (GetMessage(&msg, 0, 0, 0))  // get msg from message queue
+		{
+			switch (msg.message)
+			{
+			case MY_OnFrontConnected:
+				((void(__cdecl *)(void))param)();
+				printf("recv MY_OnFrontConnected\n");
+				break;
+			}
+		}
+	};
+}
+unsigned __stdcall MsgThreadOnFrontDisconnected(void *param)
+{
+	MSG msg;
+	::PeekMessage(&msg, NULL, WM_USER, WM_USER, PM_NOREMOVE);
+	if (!::SetEvent(hStartEvent_OnFrontDisconnected)) //set thread start event
+	{
+		printf("set start event failed,errno:%d\n", ::GetLastError());
+		return 1;
+	}
+	while (true)
+	{
+		if (::GetMessage(&msg, 0, 0, 0)) //get msg from message queue 
+		{
+			switch (msg.message)
+			{
+			case MY_OnFrontDisconnected:
+			{
+			    int reason = (int)msg.wParam;
+				((void(__cdecl *)(int a))param)(reason);
+				
+				printf("Recv MsgOnFrontDisconnected %d\n", reason);
+				 
+				break;
+			}
+			}
+		}
+	}
+	return 0;
+}
+unsigned __stdcall MsgThreadOnRspUserLogin(void *param)
+{
+	MSG msg;
+	::PeekMessage(&msg, NULL, WM_USER, WM_USER, PM_NOREMOVE);
+	if (!::SetEvent(hStartEvent_OnRspUserLogin)) //set thread start event
+	{
+		printf("set start event failed,errno:%d\n", ::GetLastError());
+		return 1;
+	}
+	while (true)
+	{
+		if (::GetMessage(&msg, 0, 0, 0)) //get msg from message queue 
+		{
+			switch (msg.message)
+			{
+			case MY_OnRspUserLogin:
+			{
+				CThostFtdcRspUserLoginField *pRspUserLogin = (CThostFtdcRspUserLoginField *)msg.wParam;
+				printf("Recv MsgOnRspUserLogin %s %s\n", pRspUserLogin->BrokerID, pRspUserLogin->UserID);
+				((void(__cdecl *)(const CThostFtdcRspUserLoginField * a))param)(pRspUserLogin);
+				delete[] pRspUserLogin; 
+				break;
+			}
+			}
+		}
+	}
+	return 0;
+}
+unsigned __stdcall MsgThreadOnRspUserLogout(void *param)
+{
+	MSG msg;
+	::PeekMessage(&msg, NULL, WM_USER, WM_USER, PM_NOREMOVE);
+	if (!::SetEvent(hStartEvent_OnRspUserLogout)) //set thread start event
+	{
+		printf("set start event failed,errno:%d\n", ::GetLastError());
+		return 1;
+	}
+	while (true)
+	{
+		if (::GetMessage(&msg, 0, 0, 0)) //get msg from message queue 
+		{
+			switch (msg.message)
+			{
+			case MY_OnRspUserLogout:
+			{
+				CThostFtdcUserLogoutField * pUserLogout = (CThostFtdcUserLogoutField *)msg.wParam;
+				printf("Recv MsgOnRspUserLogout %s %s\n", pUserLogout->BrokerID, pUserLogout->UserID);
+				((void(__cdecl *)(void))param)();
+				delete[] pUserLogout;
+				pUserLogout = NULL;
+				break;
+			}
+			}
+			Sleep(1);
+		}
+	}
+	return 0;
 }
 
-
- 
-
-void   VNRegOnRtnDepthMarketData(void(*outputCallback)(const CThostFtdcDepthMarketDataField* a))
+unsigned __stdcall MsgThreadOnRspSubMarketData(void *param)
 {
-	hEvent[EID_OnRtnDepthMarketData] = CreateEvent(NULL, FALSE, FALSE, "EID_OnRtnDepthMarketData");
-	ResetEvent(hEvent[EID_OnRtnDepthMarketData]);
-	while (1)
+	MSG msg;
+	::PeekMessage(&msg, NULL, WM_USER, WM_USER, PM_NOREMOVE);
+	if (!::SetEvent(hStartEvent_OnRspUserLogout)) //set thread start event
 	{
-		ResetEvent(hEvent[EID_OnRtnDepthMarketData]);
-		WaitForSingleObject(hEvent[EID_OnRtnDepthMarketData], INFINITE);
- 
-		CThostFtdcDepthMarketDataField  a;
-		memset(&a,0,sizeof(CThostFtdcDepthMarketDataField));
-
-		outputCallback(&a);
-		/*
-		time_t t = time(0);
-		char tmp[64];
-		strftime(tmp, sizeof(tmp), "%Y/%m/%d %X %A %j  %z", localtime(&t));
-		puts(tmp);
-		*/
+		printf("set start event failed,errno:%d\n", ::GetLastError());
+		return 1;
 	}
+	while (true)
+	{
+		if (::GetMessage(&msg, 0, 0, 0)) //get msg from message queue 
+		{
+			switch (msg.message)
+			{
+			case MY_OnRspSubMarketData:
+			{
+				CThostFtdcUserLogoutField * pUserLogout = (CThostFtdcUserLogoutField *)msg.wParam;
+				printf("Recv MsgThreadOnRspSubMarketData %s %s\n", pUserLogout->BrokerID, pUserLogout->UserID);
+				((void(__cdecl *)(void))param)();
+				delete[] pUserLogout;
+				pUserLogout = NULL;
+				break;
+			}
+			}
+			Sleep(1);
+		}
+	}
+	return 0;
 }
 
-void   VNRegOnRspUserLogin(void(*outputCallback)(const CThostFtdcRspUserLoginField* a))
+unsigned __stdcall MsgThreadOnRspUnSubMarketData(void *param)
 {
-	hEvent[EID_OnRspUserLogin] = CreateEvent(NULL, FALSE, FALSE, "EID_OnRspUserLogin");
-	ResetEvent(hEvent[EID_OnRspUserLogin]);
-	while (1)
+	MSG msg;
+	::PeekMessage(&msg, NULL, WM_USER, WM_USER, PM_NOREMOVE);
+	if (!::SetEvent(hStartEvent_OnRspUserLogout)) //set thread start event
 	{
-		ResetEvent(hEvent[EID_OnRspUserLogin]);
-		WaitForSingleObject(hEvent[EID_OnRspUserLogin], INFINITE);
-
-		CThostFtdcRspUserLoginField   a ;
-		memset(&a, 0, sizeof(CThostFtdcRspUserLoginField));
-		_snprintf_s(a.BrokerID, sizeof(a.BrokerID), sizeof(a.BrokerID) - 1, "%s", gBrokerID.c_str());
-		_snprintf_s(a.UserID, sizeof(a.UserID), sizeof(a.UserID) - 1, "%s", gInvestorID.c_str());
- 
-		outputCallback(&a);
-		/*
-		time_t t = time(0);
-		char tmp[64];
-		strftime(tmp, sizeof(tmp), "%Y/%m/%d %X %A %j  %z", localtime(&t));
-		puts(tmp);
-		*/
+		printf("set start event failed,errno:%d\n", ::GetLastError());
+		return 1;
 	}
-}
-void   VNRegOnRspUserLogout(void(*outputCallback)(const int* a))
-{
-	hEvent[EID_OnRspUserLogout] = CreateEvent(NULL, FALSE, FALSE, "EID_OnRspUserLogout");
-	ResetEvent(hEvent[EID_OnRspUserLogout]);
-	while (1)
+	while (true)
 	{
-		ResetEvent(hEvent[EID_OnRspUserLogout]);
-		WaitForSingleObject(hEvent[EID_OnRspUserLogout], INFINITE);
-
-		int a=1;
-		outputCallback(&a);
-		/*
-		time_t t = time(0);
-		char tmp[64];
-		strftime(tmp, sizeof(tmp), "%Y/%m/%d %X %A %j  %z", localtime(&t));
-		puts(tmp);
-		*/
+		if (::GetMessage(&msg, 0, 0, 0)) //get msg from message queue 
+		{
+			switch (msg.message)
+			{
+			case MY_OnRspUnSubMarketData:
+			{
+				CThostFtdcUserLogoutField * pUserLogout = (CThostFtdcUserLogoutField *)msg.wParam;
+				printf("Recv MsgThreadOnRspUnSubMarketData %s %s\n", pUserLogout->BrokerID, pUserLogout->UserID);
+				((void(__cdecl *)(void))param)();
+				delete[] pUserLogout;
+				pUserLogout = NULL;
+				break;
+			}
+			}
+			Sleep(1);
+		}
 	}
-}
-void   VNRegOnRspUnSubMarketData(void(*outputCallback)(const int* a))
-{
-	hEvent[EID_OnRspUnSubMarketData] = CreateEvent(NULL, FALSE, FALSE, "EID_OnRspUnSubMarketData");
-	ResetEvent(hEvent[EID_OnRspUnSubMarketData]);
-	while (1)
-	{
-		ResetEvent(hEvent[EID_OnRspUnSubMarketData]);
-		WaitForSingleObject(hEvent[EID_OnRspUnSubMarketData], INFINITE);
-
-		int a = 1;
-		outputCallback(&a);
-		/*
-		time_t t = time(0);
-		char tmp[64];
-		strftime(tmp, sizeof(tmp), "%Y/%m/%d %X %A %j  %z", localtime(&t));
-		puts(tmp);
-		*/
-	}
+	return 0;
 }
 
-void   VNRegOnRspSubMarketData(void(*outputCallback)(const int* a))
+unsigned __stdcall MsgThreadOnRtnDepthMarketData(void *param)
 {
-	hEvent[EID_OnRspSubMarketData] = CreateEvent(NULL, FALSE, FALSE, "EID_OnRspSubMarketData");
-	ResetEvent(hEvent[EID_OnRspSubMarketData]);
-	while (1)
+	MSG msg;
+	::PeekMessage(&msg, NULL, WM_USER, WM_USER, PM_NOREMOVE);
+	if (!::SetEvent(hStartEvent_OnRspUserLogout)) //set thread start event
 	{
-		ResetEvent(hEvent[EID_OnRspSubMarketData]);
-		WaitForSingleObject(hEvent[EID_OnRspSubMarketData], INFINITE);
-
-		int a = 1;
-		outputCallback(&a);
-		/*
-		time_t t = time(0);
-		char tmp[64];
-		strftime(tmp, sizeof(tmp), "%Y/%m/%d %X %A %j  %z", localtime(&t));
-		puts(tmp);
-		*/
+		printf("set start event failed,errno:%d\n", ::GetLastError());
+		return 1;
 	}
+	while (true)
+	{
+		if (::GetMessage(&msg, 0, 0, 0)) //get msg from message queue 
+		{
+			switch (msg.message)
+			{
+			case MY_OnRtnDepthMarketData:
+			{
+				CThostFtdcUserLogoutField * pUserLogout = (CThostFtdcUserLogoutField *)msg.wParam;
+				printf("Recv MsgThreadOnRtnDepthMarketData %s %s\n", pUserLogout->BrokerID, pUserLogout->UserID);
+				((void(__cdecl *)(void))param)();
+				delete[] pUserLogout;
+				pUserLogout = NULL;
+				break;
+			}
+			}
+			Sleep(1);
+		}
+	}
+	return 0;
 }
-extern HANDLE hEvent[MAX_EVENTNUM];
-
-
 
 
 void  VNRegOnFrontConnected(void(*outputCallback)())
 {
-	hEvent[EID_OnFrontConnected] = CreateEvent(NULL, FALSE, FALSE, "EID_OnFrontConnected");
-	 //thread t(test);
- 
-	 while (1)
-	 {
-		 ResetEvent(hEvent[EID_OnFrontConnected]);
-		 WaitForSingleObject(hEvent[EID_OnFrontConnected], INFINITE);
-		 outputCallback();
-		 /*
-		 time_t t = time(0);
-		 char tmp[64];
-		 strftime(tmp, sizeof(tmp), "%Y/%m/%d %X %A %j  %z", localtime(&t));
-		 puts(tmp);
-		 */
-		 Sleep(1);
-	 }
- 
+	HANDLE hThread;
+	hStartEvent_OnFrontConnected = ::CreateEvent(0, FALSE, FALSE, 0);  // create thread start event
+	if (hStartEvent_OnFrontConnected == 0)
+	{
+		printf("create start event failed,errno:%d\n", ::GetLastError());
+		return;
+	}
+	hThread = (HANDLE)_beginthreadex(NULL, 0, &MsgThreadOnFrontConnected, outputCallback, 0, &nThreadID_OnFrontConnected);
+	if (hThread == 0)
+	{
+		printf("start thread failed,errno:%d\n", ::GetLastError());
+		CloseHandle(hStartEvent_OnFrontConnected);
+		return;
+	}
+	::WaitForSingleObject(hStartEvent_OnFrontConnected, INFINITE);
+	CloseHandle(hStartEvent_OnFrontConnected);
+	::WaitForSingleObject(hThread, INFINITE);
 }
 
-void   VNRegOnFrontDisconnected(void(*outputCallback)(int *a))
+void   VNRegOnFrontDisconnected(void(*outputCallback)(int a))
 {
-	hEvent[EID_OnFrontDisconnected] = CreateEvent(NULL, FALSE, FALSE, "EID_OnFrontDisconnected");
-	//thread t(test);
-	while (1)
+	hStartEvent_OnFrontDisconnected = ::CreateEvent(0, FALSE, FALSE, 0); //create thread start event
+	if (hStartEvent_OnFrontDisconnected == 0)
 	{
-		ResetEvent(hEvent[EID_OnFrontDisconnected]);
-		WaitForSingleObject(hEvent[EID_OnFrontDisconnected], INFINITE);
-		int a = 1;
-		outputCallback(&a);
-		/*
-		time_t t = time(0);
-		char tmp[64];
-		strftime(tmp, sizeof(tmp), "%Y/%m/%d %X %A %j  %z", localtime(&t));
-		puts(tmp);
-		*/
+		printf("create start event failed,errno:%d\n", ::GetLastError());
+		return;
 	}
+	HANDLE hThread = (HANDLE)_beginthreadex(NULL, 0, &MsgThreadOnFrontDisconnected, outputCallback, 0, &nThreadID_OnFrontDisconnected);
+	if (hThread == 0)
+	{
+		printf("start thread failed,errno:%d\n", ::GetLastError());
+		::CloseHandle(hStartEvent_OnFrontDisconnected);
+		return;
+	}
+	::WaitForSingleObject(hStartEvent_OnFrontDisconnected, INFINITE);
+	::CloseHandle(hStartEvent_OnFrontDisconnected);
+	::WaitForSingleObject(hThread, INFINITE);
+
 }
  
+void   VNRegOnRspUserLogin(void(*outputCallback)(const CThostFtdcRspUserLoginField* a))
+{
+	hStartEvent_OnRspUserLogin = ::CreateEvent(0, FALSE, FALSE, 0); //create thread start event
+	if (hStartEvent_OnRspUserLogin == 0)
+	{
+		printf("create start event failed,errno:%d\n", ::GetLastError());
+		return;
+	}
+	HANDLE hThread = (HANDLE)_beginthreadex(NULL, 0, &MsgThreadOnRspUserLogin, outputCallback, 0, &nThreadID_OnRspUserLogin);
+	if (hThread == 0)
+	{
+		printf("start thread failed,errno:%d\n", ::GetLastError());
+		::CloseHandle(hStartEvent_OnRspUserLogin);
+		return;
+	}
+	::WaitForSingleObject(hStartEvent_OnRspUserLogin, INFINITE);
+	::CloseHandle(hStartEvent_OnRspUserLogin);
+	::WaitForSingleObject(hThread, INFINITE);
+}
+void   VNRegOnRspUserLogout(void(*outputCallback)(const CThostFtdcUserLogoutField * a))
+{
+	hStartEvent_OnRspUserLogout = ::CreateEvent(0, FALSE, FALSE, 0); //create thread start event
+	if (hStartEvent_OnRspUserLogout == 0)
+	{
+		printf("create start event failed,errno:%d\n", ::GetLastError());
+		return;
+	}
+	HANDLE hThread = (HANDLE)_beginthreadex(NULL, 0, &MsgThreadOnRspUserLogout, outputCallback, 0, &nThreadID_OnRspUserLogout);
+	if (hThread == 0)
+	{
+		printf("start thread failed,errno:%d\n", ::GetLastError());
+		::CloseHandle(hStartEvent_OnRspUserLogout);
+		return;
+	}
+	::WaitForSingleObject(hStartEvent_OnRspUserLogout, INFINITE);
+	::CloseHandle(hStartEvent_OnRspUserLogout);
+	::WaitForSingleObject(hThread, INFINITE);
+} 
+
+void   VNRegOnRspSubMarketData(void(*outputCallback)(const int* a))
+{
+	hStartEvent_OnRspSubMarketData = ::CreateEvent(0, FALSE, FALSE, 0); //create thread start event
+	if (hStartEvent_OnRspSubMarketData == 0)
+	{
+		printf("create start event failed,errno:%d\n", ::GetLastError());
+		return;
+	}
+	HANDLE hThread = (HANDLE)_beginthreadex(NULL, 0, &MsgThreadOnRspSubMarketData, outputCallback, 0, &nThreadID_OnRspSubMarketData);
+	if (hThread == 0)
+	{
+		printf("start thread failed,errno:%d\n", ::GetLastError());
+		::CloseHandle(hStartEvent_OnRspSubMarketData);
+		return;
+	}
+	::WaitForSingleObject(hStartEvent_OnRspSubMarketData, INFINITE);
+	::CloseHandle(hStartEvent_OnRspSubMarketData);
+	::WaitForSingleObject(hThread, INFINITE);
+}
+
+void   VNRegOnRspUnSubMarketData(void(*outputCallback)(const int* a))
+{
+	hStartEvent_OnRspUnSubMarketData = ::CreateEvent(0, FALSE, FALSE, 0); //create thread start event
+	if (hStartEvent_OnRspUnSubMarketData == 0)
+	{
+		printf("create start event failed,errno:%d\n", ::GetLastError());
+		return;
+	}
+	HANDLE hThread = (HANDLE)_beginthreadex(NULL, 0, &MsgThreadOnRspUnSubMarketData, outputCallback, 0, &nThreadID_OnRspUnSubMarketData);
+	if (hThread == 0)
+	{
+		printf("start thread failed,errno:%d\n", ::GetLastError());
+		::CloseHandle(hStartEvent_OnRspUnSubMarketData);
+		return;
+	}
+	::WaitForSingleObject(hStartEvent_OnRspUnSubMarketData, INFINITE);
+	::CloseHandle(hStartEvent_OnRspUnSubMarketData);
+	::WaitForSingleObject(hThread, INFINITE);
+}
+
+
+void   VNRegOnRtnDepthMarketData(void(*outputCallback)(const CThostFtdcDepthMarketDataField* a))
+{
+	hStartEvent_OnRtnDepthMarketData = ::CreateEvent(0, FALSE, FALSE, 0); //create thread start event
+	if (hStartEvent_OnRtnDepthMarketData == 0)
+	{
+		printf("create start event failed,errno:%d\n", ::GetLastError());
+		return;
+	}
+	HANDLE hThread = (HANDLE)_beginthreadex(NULL, 0, &MsgThreadOnRtnDepthMarketData, outputCallback, 0, &nThreadID_OnRtnDepthMarketData);
+	if (hThread == 0)
+	{
+		printf("start thread failed,errno:%d\n", ::GetLastError());
+		::CloseHandle(hStartEvent_OnRtnDepthMarketData);
+		return;
+	}
+	::WaitForSingleObject(hStartEvent_OnRtnDepthMarketData, INFINITE);
+	::CloseHandle(hStartEvent_OnRtnDepthMarketData);
+	::WaitForSingleObject(hThread, INFINITE);
+}
+
+

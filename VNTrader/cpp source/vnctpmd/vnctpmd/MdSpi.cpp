@@ -22,7 +22,6 @@ using namespace std;
 
   CThostFtdcMdApi *mpUserApi = NULL;
 
-  extern HANDLE hEvent[MAX_EVENTNUM];
 
 #pragma warning(disable : 4996)
 
@@ -83,18 +82,7 @@ extern QS_Data_Map     mapData;
 extern QS_Strategy_Map mapStrategy;
 //新增加
 
-/*
-QS_Strategy_Map::iterator it = mapData->find(listinfo->InstrumentID);
-if (it != mapData->end())
-{
-it->second.leftamount = leftamount;
-it->second.enablestate[1] = false;
-it->second.colorstate = false;
-it->second.color = RGB(255, 246, 128);
-lastcolor = true;
-}
-*/
-
+ 
 
 int errornum_del = 0;
 int errornum_add = 0;
@@ -5037,7 +5025,83 @@ void UpdatePriceHash(const char * InstrumentID, CThostFtdcDepthMarketDataField *
 }
 
 
+void CMdSpi::PMsg(unsigned nThreadID, int msg, LPVOID p1, LPVOID p2, int Reason)
+{
+	switch (msg)
+	{
+	case MY_OnFrontConnected:
+		if (!::PostThreadMessage(nThreadID, msg, 0, 0))
+		{
+			printf("post message(OnFrontConnected) failed, errno:%d\n", ::GetLastError());
+			delete[] pInfo;
+		}
+		break;
+	case MY_OnFrontDisconnected:
+		if (!::PostThreadMessage(nThreadID, msg, (WPARAM)Reason, NULL))
+		{
+			printf("post message(MY_OnFrontDisconnected) failed, errno:%d\n", ::GetLastError());
+		}
+		break;
+	case MY_OnRspUserLogin:
+		pRspUserLogin_OnRspUserLogin = new CThostFtdcRspUserLoginField;
+		pRspInfo_OnRspUserLogin = new CThostFtdcRspInfoField;
+		if (!::PostThreadMessage(nThreadID, msg, (WPARAM)pRspUserLogin_OnRspUserLogin, NULL))
+		{
+			printf("post message(MY_OnRspUserLogin) failed, errno:%d\n", ::GetLastError());
+			delete[] pInfo;
+		}
+		break;
+	case MY_OnRspUserLogout:
+		pUserLogout_OnRspUserLogout = new CThostFtdcUserLogoutField;
+		pRspInfo_OnRspUserLogout = new CThostFtdcRspInfoField;
+		if (!::PostThreadMessage(nThreadID, msg, (WPARAM)pUserLogout_OnRspUserLogout, NULL))
+		{
+			printf("post message(MY_OnRspUserLogin) failed, errno:%d\n", ::GetLastError());
+			delete[] pInfo;
+		}
+		break;
+	case MY_OnRspQryInvestorPosition:
+		break;
+	case MY_OnRspQryTradingAccount:
+		pInfo = new char[MAX_INFO_SIZE];
+		sprintf(pInfo, "PMsg msg_%d", ++count);
+		if (!::PostThreadMessage(nThreadID, msg, (WPARAM)pInfo, NULL))
+		{
+			printf("2 post message failed, errno:%d\n", ::GetLastError());
+			delete[] pInfo;
+		}
+	case MY_OnRtnOrder:
+		break;
+	case MY_OnRtnTrade:
+		break;
+	case MY_OnRtnDepthMarketData:
+		break;
+	case MY_OnRspSubMarketData:
+		break;
+	case MY_OnRspUnSubMarketData:
+		break;
+	case MY_OnRspForQuote:
+		break;
 
+	case MY_OnRspAuthenticate:
+		break;
+
+	case MY_IsErrorRspInfo:
+		break;
+
+
+	default:
+		pInfo = new char[MAX_INFO_SIZE];
+		sprintf(pInfo, "PMsg msg_%d", ++count);
+		if (!::PostThreadMessage(nThreadID, msg, (WPARAM)pInfo, NULL))
+		{
+			printf("2 post message failed, errno:%d\n", ::GetLastError());
+			delete[] pInfo;
+		}
+
+	}
+
+}
 
 
 CMdSpi::CMdSpi()
@@ -5076,7 +5140,8 @@ void CMdSpi::OnRspError(CThostFtdcRspInfoField *pRspInfo,int nRequestID, bool bI
 void CMdSpi::OnFrontDisconnected(int nReason)
 {
 	cerr << "--->>> " << __FUNCTION__ << std::endl;
-	SetEvent(hEvent[EID_OnFrontDisconnected]);
+	PMsg(nThreadID_OnFrontDisconnected, MY_OnFrontDisconnected, NULL, NULL, nReason);
+
 	/*
 	SYSTEMTIME t;
 	::GetLocalTime(&t);
@@ -5084,7 +5149,7 @@ void CMdSpi::OnFrontDisconnected(int nReason)
 	std::cout << "--->>> " << __FUNCTION__ << std::endl;
 	std::cout << "--->>> Reason = " << nReason << std::endl;
 	*/
-	::Beep(800, 10000);
+	::Beep(800, 500);
 }
 
 void CMdSpi::OnHeartBeatWarning(int nTimeLapse)
@@ -5101,8 +5166,8 @@ BOOL CMdSpi::Init()
 void CMdSpi::OnFrontConnected()
 {
 	cerr << "--->>> " << __FUNCTION__ << std::endl;
+	PMsg(nThreadID_OnFrontConnected, MY_OnFrontConnected, NULL, NULL, 0);
 
-	SetEvent(hEvent[EID_OnFrontConnected]);
     ///用户登录请求
 	ReqUserLogin();	  
  
@@ -5168,13 +5233,15 @@ void CMdSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,CThostFtd
 	{
 		return;
 	}
+	PMsg(nThreadID_OnRspUserLogin, MY_OnRspUserLogin, pRspUserLogin, pRspInfo, nRequestID);
+
+
 	if (bIsLast && !IsErrorRspInfo(pRspInfo))
 	{
 		///获取当前交易日
 		cerr << "TradeingDay: " << mpUserApi->GetTradingDay() << endl;
 		mInitOK = TRUE;
 
-	SetEvent(hEvent[EID_OnRspUserLogin]);
 
 	if (pRspInfo && pRspInfo->ErrorID != 0)
 	{
@@ -5192,6 +5259,13 @@ void CMdSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,CThostFtd
 	}
 
 	}
+
+}
+///登出请求响应
+void CMdSpi::OnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{
+
+	PMsg(nThreadID_OnRspUserLogout, MY_OnRspUserLogout, pUserLogout, pRspInfo, nRequestID);
 
 }
 
@@ -5550,7 +5624,7 @@ void CMdSpi::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *pDepthMarketDa
 	{
 		return;
 	}
-	SetEvent(hEvent[EID_OnRtnDepthMarketData]);
+	PMsg(nThreadID_OnRspUserLogout, MY_OnRtnDepthMarketData, pDepthMarketData, NULL, 0);
 
 	return;
 	//本机时间过滤
@@ -5684,14 +5758,12 @@ bool CMdSpi::IsErrorRspInfo(CThostFtdcRspInfoField *pRspInfo)
 ///订阅行情应答
 void  CMdSpi::OnRspSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
-	SetEvent(hEvent[EID_OnRspSubMarketData]);
 
 };
 
 ///取消订阅行情应答
 void  CMdSpi::OnRspUnSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
-	SetEvent(hEvent[EID_OnRspUnSubMarketData]);
 
 };
 
@@ -5701,10 +5773,3 @@ void  CMdSpi::OnRtnForQuoteRsp(CThostFtdcForQuoteRspField *pForQuoteRsp)
 
 };
 
-///登出请求响应
-void CMdSpi::OnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
-{
-	SetEvent(hEvent[EID_OnRspUserLogout]);
-
-
-}

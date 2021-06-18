@@ -43,13 +43,13 @@ extern "C"{
 
 	void VN_EXPORT VNRegOnFrontConnected(void(*outputCallback)());
 
-	void VN_EXPORT VNRegOnFrontDisconnected(void(*outputCallback)(int * a));
-
-	void VN_EXPORT VNRegOnRtnDepthMarketData(void(*outputCallback)(const CThostFtdcDepthMarketDataField* a));
+	void VN_EXPORT VNRegOnFrontDisconnected(void(*outputCallback)(int a));
 
 	void VN_EXPORT VNRegOnRspUserLogin(void(*outputCallback)(const CThostFtdcRspUserLoginField * a));
 
-	void VN_EXPORT VNRegOnRspUserLogout(void(*outputCallback)(const int* a));
+	void VN_EXPORT VNRegOnRspUserLogout(void(*outputCallback)(const CThostFtdcUserLogoutField * a));
+
+	void VN_EXPORT VNRegOnRtnDepthMarketData(void(*outputCallback)(const CThostFtdcDepthMarketDataField* a));
 
 	void VN_EXPORT VNRegOnRspUnSubMarketData(void(*outputCallback)(const int* a));
 
@@ -103,16 +103,7 @@ extern "C"{
 	int VN_EXPORT UnSubscribeMarketData( char *InstrumentID);
 
 	int VN_EXPORT SubscribeMarketData(char *InstrumentID);
-	/*
-	void VN_EXPORT Subscribe1(const char *InstrumentID, int periodtype1);
-	void VN_EXPORT Subscribe2(const char *InstrumentID, int periodtype1, int periodtype2);
-	void VN_EXPORT Subscribe3(const char *InstrumentID, int periodtype1, int periodtype2, int periodtype3);
-	void VN_EXPORT Subscribe4(const char *InstrumentID, int periodtype1, int periodtype2, int periodtype3, int periodtype4);
-	void VN_EXPORT Subscribe5(const char *InstrumentID, int periodtype1, int periodtype2, int periodtype3, int periodtype4, int periodtype5);
-	void VN_EXPORT Subscribe6(const char *InstrumentID, int periodtype1, int periodtype2, int periodtype3, int periodtype4, int periodtype5, int periodtype6);
-	void VN_EXPORT Subscribe7(const char *InstrumentID, int periodtype1, int periodtype2, int periodtype3, int periodtype4, int periodtype5, int periodtype6, int periodtype7);
-	void VN_EXPORT Subscribe8(const char *InstrumentID, int periodtype1, int periodtype2, int periodtype3, int periodtype4, int periodtype5, int periodtype6, int periodtype7, int periodtype8);
-	*/
+
     //Ñ¯¼Û
 	void VN_EXPORT SubscribeForQuoteRsp(char *InstrumentID);
 

@@ -183,38 +183,90 @@ int CTDSpi::ReqUserLogin()
 	}
 }
 
-void CTDSpi::PMsg(unsigned nThreadID, int msg)
+void CTDSpi::PMsg(unsigned nThreadID, int msg, LPVOID p1, LPVOID p2,int Reason)
 {
-	char* pInfo = new char[MAX_INFO_SIZE]; //create dynamic msg 
-	sprintf(pInfo, "PMsg msg_%d", ++count);
-	if (!::PostThreadMessage(nThreadID, msg, (WPARAM)pInfo, 0))//post thread msg
+	switch (msg)
 	{
-		printf("2 post message failed, errno:%d\n", ::GetLastError());
-		delete[] pInfo;
+	case MY_OnFrontConnected:
+		if (!::PostThreadMessage(nThreadID, msg, 0, 0))
+		{
+			printf("post message(OnFrontConnected) failed, errno:%d\n", ::GetLastError());
+			delete[] pInfo;
+		}
+		break;
+	case MY_OnFrontDisconnected:
+		if (!::PostThreadMessage(nThreadID, msg, (WPARAM)Reason, NULL))
+		{
+			printf("post message(MY_OnFrontDisconnected) failed, errno:%d\n", ::GetLastError());
+		}
+		break;
+	case MY_OnRspUserLogin:
+		 pRspUserLogin_OnRspUserLogin = new CThostFtdcRspUserLoginField;
+		 pRspInfo_OnRspUserLogin = new CThostFtdcRspInfoField;
+		if (!::PostThreadMessage(nThreadID, msg, (WPARAM)pRspUserLogin_OnRspUserLogin, NULL))
+		{
+			printf("post message(MY_OnRspUserLogin) failed, errno:%d\n", ::GetLastError());
+			delete[] pInfo;
+		}
+		break;
+	case MY_OnRspUserLogout:
+		pUserLogout_OnRspUserLogout = new CThostFtdcUserLogoutField;
+		pRspInfo_OnRspUserLogout = new CThostFtdcRspInfoField;
+		if (!::PostThreadMessage(nThreadID, msg, (WPARAM)pUserLogout_OnRspUserLogout, NULL))
+		{
+			printf("post message(MY_OnRspUserLogin) failed, errno:%d\n", ::GetLastError());
+			delete[] pInfo;
+		}
+		break;
+	case MY_OnRspQryInvestorPosition:
+		break;
+	case MY_OnRspQryTradingAccount:
+		pInfo = new char[MAX_INFO_SIZE]; 
+		sprintf(pInfo, "PMsg msg_%d", ++count);
+		if (!::PostThreadMessage(nThreadID, msg, (WPARAM)pInfo, NULL))
+		{
+			printf("2 post message failed, errno:%d\n", ::GetLastError());
+			delete[] pInfo;
+		}
+	case MY_OnRtnOrder:
+		break;
+	case MY_OnRtnTrade:
+		break;
+	case MY_OnRtnDepthMarketData:
+		break;
+	case MY_OnRspSubMarketData:
+		break;
+	case MY_OnRspUnSubMarketData:
+		break;
+	case MY_OnRspForQuote:
+		break;
+ 
+	case MY_OnRspAuthenticate:
+		break;
+
+	case MY_IsErrorRspInfo:
+		break;
+
+
+	default:
+		pInfo = new char[MAX_INFO_SIZE]; 
+		sprintf(pInfo, "PMsg msg_%d", ++count);
+		if (!::PostThreadMessage(nThreadID, msg, (WPARAM)pInfo, NULL))
+		{
+			printf("2 post message failed, errno:%d\n", ::GetLastError());
+			delete[] pInfo;
+		}
+	
 	}
+
 }
 
 extern unsigned nThreadID;
 void CTDSpi::OnFrontConnected()
 {
 	connect = true;
-
 	std::cout << __FUNCTION__ << std::endl;
-
-
- 
-	 PMsg(nThreadID_OnFrontConnected, MY_MSG);
- //MY_OnFrontConnected
-	 /*
-	char* pInfo = new char[MAX_INFO_SIZE]; //create dynamic msg 
-	sprintf(pInfo, "OnFrontConnected");
-	if (!::PostThreadMessage(nThreadID, MY_MSG, (WPARAM)pInfo, 0))//post thread msg
-	{
-		printf("3post(OnFrontConnected) message failed, errno:%d\n", ::GetLastError());
-		delete[] pInfo;
-	}
-	*/
-
+	 PMsg(nThreadID_OnFrontConnected, MY_OnFrontConnected,NULL, NULL, 0);
 	//认证请求
 	ReqAuthenticate();
 }
@@ -257,17 +309,14 @@ void CTDSpi::OnFrontDisconnected(int nReason)
 	std::cout << __FUNCTION__ << std::endl;
 
 
-	PMsg(nThreadID_OnFrontDisconnected, MY_OnFrontDisconnected);
-
-
-
+	PMsg(nThreadID_OnFrontDisconnected, MY_OnFrontDisconnected,NULL, NULL, nReason);
 	connect = false;
 	SYSTEMTIME t;
 	::GetLocalTime(&t);
 	std::cout << t.wHour << ":" << t.wMinute << ":" << t.wSecond << std::endl;
 	std::cout << "--->>> " << __FUNCTION__ << std::endl;
 	std::cout << "--->>> Reason = " << nReason << std::endl;
-	::Beep(450, 10000);
+	::Beep(450, 500);
 }
 
 void CTDSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
@@ -278,16 +327,9 @@ void CTDSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,CThostFtd
 	}
 
 
+	PMsg(nThreadID_OnRspUserLogin, MY_OnRspUserLogin, pRspUserLogin, pRspInfo, nRequestID);
 
 
- 
-	 
-	PMsg(nThreadID_OnRspUserLogin, MY_OnRspUserLogin);
-
-
-
-
- 
 	ReqSettlementInfoConfirm();
 	std::cout << __FUNCTION__ << std::endl;
 	FRONT_ID = pRspUserLogin->FrontID;
@@ -330,18 +372,7 @@ void CTDSpi::OnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout, CThostFtdcR
 	{
 		return;
 	}
-
-
-
- 
-	 
-
-	PMsg(nThreadID_OnRspUserLogout, MY_OnRspUserLogout);
-
-
-
-
-
+	PMsg(nThreadID_OnRspUserLogout, MY_OnRspUserLogout, pUserLogout, pRspInfo, nRequestID);
 
 
 	//FRONT_ID = pUserLogout->FrontID;
@@ -414,7 +445,7 @@ void CTDSpi::OnRtnOrder(CThostFtdcOrderField *pOrder)
 
  
 
-	PMsg(nThreadID_OnRtnOrder, MY_OnRtnOrder);
+	PMsg(nThreadID_OnRtnOrder, MY_OnRtnOrder, pOrder, NULL, 0);
 
 
 
@@ -438,7 +469,7 @@ void CTDSpi::OnRtnTrade(CThostFtdcTradeField *pTrade)
 	}
 
 
-	PMsg(nThreadID_OnRtnTrade, MY_OnRtnTrade);
+	PMsg(nThreadID_OnRtnTrade, MY_OnRtnTrade, pTrade, NULL, 0);
 
  
 
@@ -878,16 +909,8 @@ void CTDSpi::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *pInvestor
 {
 	std::cout << __FUNCTION__ << std::endl;
 
-
-
-
-	 
-
-
-
-
-
-
+ 
+	PMsg(nThreadID_OnRspQryInvestorPosition, MY_OnRspQryInvestorPosition, pInvestorPosition, NULL, 0);
 
 
 	if (pInvestorPosition == NULL)
@@ -1220,19 +1243,6 @@ double TodayAllAmount=0;
 double Available=0;
 
 
-struct CTradeAcount
-{ 
-	// 静态权益
-	double prebalance;
-	//动态权益
-	double current;
- 	//可用权益
-	double available;
-    //今日盈亏
-	double rate;
-	//仓位
-	double positionrate;
-};
 
 void CTDSpi::OnRspQryTradingAccount(CThostFtdcTradingAccountField *pTradingAccount, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
@@ -1241,25 +1251,9 @@ void CTDSpi::OnRspQryTradingAccount(CThostFtdcTradingAccountField *pTradingAccou
 	{
 		return;
 	}
-
-
-
-
-
-
-
-
-	 
-
-
-
-
-
-
-
 	if (bIsLast && !IsErrorRspInfo(pRspInfo))
 	{
-		CTradeAcount tn;
+		VNDEFTradeAcount tn;
 		//cerr << "--->>> 交易日: " << pTradingAccount->TradingDay << "\n" << endl;
 		//cerr << "--->>> \n可用资金: " << (int)(pTradingAccount->Available / 10000) << "万\n" << endl;
 		//cerr << "--->>> 可取资金: " << pTradingAccount->WithdrawQuota  << endl;
@@ -1275,6 +1269,9 @@ void CTDSpi::OnRspQryTradingAccount(CThostFtdcTradingAccountField *pTradingAccou
 		tn.available = pTradingAccount->Available;  //可用资金
 		Available = tn.available;
 		printf("Available: %f\n", tn.available);
+
+		PMsg(nThreadID_OnRspQryTradingAccount, MY_OnRspQryTradingAccount, &tn, pRspInfo , nRequestID);
+
 		/*
 		//检查交易日志文件是否存在，是否需要新建文本文件
 		if (LogFilePaths[0] == '\0')

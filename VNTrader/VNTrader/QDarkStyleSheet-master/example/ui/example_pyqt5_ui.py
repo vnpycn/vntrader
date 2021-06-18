@@ -406,12 +406,28 @@ backteststate=0
 class Ui_MainWindow(object):
 
 
-
     class DialogInvestor(QMainWindow):
         def __init__(self):
             super().__init__()
 
             self.initUI()
+
+        def closeEvent(self, event):
+            """
+            重写closeEvent方法，实现dialog窗体关闭时执行一些代码
+            :param event: close()触发的事件
+            :return: None
+            """
+            reply = QtWidgets.QMessageBox.question(self,
+                                                   '提示',
+                                                   "是否关闭窗口？",
+                                                   QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                                                   QtWidgets.QMessageBox.No)
+            if reply == QtWidgets.QMessageBox.Yes:
+                event.accept()
+            else:
+                event.ignore()
+
 
         def Function_OpenUrl_HOWTOGETAUTHCODE(self):
             webbrowser.open('http://www.vnpy.cn/')
@@ -781,12 +797,7 @@ class Ui_MainWindow(object):
         self.gridLayout_4 = QtWidgets.QGridLayout(self.page_instrument)
         self.gridLayout_4.setContentsMargins(0, 0, 0, 0)
         self.gridLayout_4.setObjectName("gridLayout_4")
-        """
-        #2，1 委托记录
-        self.lineEdit = QtWidgets.QLineEdit(self.page_instrument)
-        self.lineEdit.setObjectName("lineEdit")
-        self.gridLayout_4.addWidget(self.lineEdit, 0, 0, 1, 1)
-        """
+
         self.table_instrument = QtWidgets.QTableWidget(self.page_instrument)
         self.table_instrument.setObjectName("table_Order")
         self.table_instrument.verticalHeader().setVisible(False)  # 隐藏垂直表头
@@ -799,13 +810,8 @@ class Ui_MainWindow(object):
         self.table_instrument.setSortingEnabled(True)  # 设置表头可以自动排序
 
 
-
-
-
         self.gridLayout_4.addWidget(self.table_instrument, 0, 0, 1, 1)
-
         self.toolBox2.addItem(self.page_instrument, "")
-
         self.page_trade = QtWidgets.QWidget()
         self.page_trade.setGeometry(QtCore.QRect(0, 0, 697, 210))
         self.page_trade.setObjectName("page_trade")
@@ -827,8 +833,6 @@ class Ui_MainWindow(object):
 
 
         self.gridLayout_5.addWidget(self.table_trade, 1, 1, 1, 1)
-
-        # self.gridLayout_5.addWidget(self.listWidget, 0, 0, 1, 1)
 
         self.page_position = QtWidgets.QWidget()
         self.page_position.setGeometry(QtCore.QRect(0, 0, 697, 210))
@@ -868,49 +872,6 @@ class Ui_MainWindow(object):
         Trade_CancelBtn.setStyleSheet('QPushButton{margin:3px}')
         self.table_position.setCellWidget(0, 6, Trade_CancelBtn)
 
-        """
-        item = QtWidgets.Qtable_accountItem()
-        self.table_position.setVerticalHeaderItem(0, item)
-        item = QtWidgets.Qtable_accountItem()
-        self.table_position.setVerticalHeaderItem(1, item)
-        item = QtWidgets.Qtable_accountItem()
-        self.table_position.setVerticalHeaderItem(2, item)
-        item = QtWidgets.Qtable_accountItem()
-        self.table_position.setVerticalHeaderItem(3, item)
-        item = QtWidgets.Qtable_accountItem()
-        self.table_position.setVerticalHeaderItem(4, item)
-        item = QtWidgets.Qtable_accountItem()
-        self.table_position.setVerticalHeaderItem(5, item)
-        item = QtWidgets.Qtable_accountItem()
-        self.table_position.setVerticalHeaderItem(6, item)
-        item = QtWidgets.Qtable_accountItem()
-        self.table_position.setVerticalHeaderItem(7, item)
- 
-        item = QtWidgets.Qtable_accountItem()
-        self.table_position.setHorizontalHeaderItem(0, item)
-        item = QtWidgets.Qtable_accountItem()
-        self.table_position.setHorizontalHeaderItem(1, item)
-        item = QtWidgets.Qtable_accountItem()
-        self.table_position.setHorizontalHeaderItem(2, item)
-        item = QtWidgets.Qtable_accountItem()
-        self.table_position.setHorizontalHeaderItem(3, item)
-        item = QtWidgets.Qtable_accountItem()
-        self.table_position.setHorizontalHeaderItem(4, item)
-        item = QtWidgets.Qtable_accountItem()
-        self.table_position.setHorizontalHeaderItem(5, item)
-        item = QtWidgets.Qtable_accountItem()
-        self.table_position.setHorizontalHeaderItem(6, item)
-        item = QtWidgets.Qtable_accountItem()
-        self.table_position.setHorizontalHeaderItem(7, item)
-        item = self.table_position.horizontalHeaderItem(0).setText("合约")
-        item = self.table_position.horizontalHeaderItem(1).setText("方向")
-        item = self.table_position.horizontalHeaderItem(2).setText("数量")
-        item = self.table_position.horizontalHeaderItem(3).setText("时间")
-        item = self.table_position.horizontalHeaderItem(4).setText("备注1")
-        item = self.table_position.horizontalHeaderItem(5).setText("备注2")
-        item = self.table_position.horizontalHeaderItem(6).setText("备注3")
-        item = self.table_position.horizontalHeaderItem(7).setText("备注4")
-        """
         self.gridLayout_5.addWidget(self.table_position, 1, 1, 1, 1)
 
         self.toolBox1.addItem(self.page_trade, "")

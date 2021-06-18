@@ -22,15 +22,15 @@ extern "C" {
 
 	void VN_EXPORT VNRegOnFrontConnected(void(*outputCallback)());
 
-	void VN_EXPORT VNRegOnFrontDisconnected(void(*outputCallback)(int * a));
+	void VN_EXPORT VNRegOnFrontDisconnected(void(*outputCallback)(int a));
 
 	void VN_EXPORT VNRegOnRspUserLogin(void(*outputCallback)(const CThostFtdcRspUserLoginField * a));
 
-	void VN_EXPORT VNRegOnRspUserLogout(void(*outputCallback)(const int* a));
+	void VN_EXPORT VNRegOnRspUserLogout(void(*outputCallback)(const CThostFtdcUserLogoutField * a));
 
 	void VN_EXPORT VNRegOnRspQryInvestorPosition(void(*outputCallback)(const int* a));
 
-	void VN_EXPORT VNRegOnRspQryTradingAccount(void(*outputCallback)(const int* a));
+	void VN_EXPORT VNRegOnRspQryTradingAccount(void(*outputCallback)(const VNDEFTradeAcount *pTradingAccount));
 
 	void VN_EXPORT VNRegOnRtnOrder(void(*outputCallback)(CThostFtdcOrderField *pOrder));
 

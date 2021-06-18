@@ -8,14 +8,20 @@
 ¹Ù·½ÍøÕ¾£ºhttp://www.vnpy.cn
 */
 #pragma once
-extern HANDLE hEvent[MAX_EVENTNUM];
 
 extern CThostFtdcTraderApi *vntdapi;
 class CTDSpi: public CThostFtdcTraderSpi
 {
 public:
+	CThostFtdcRspUserLoginField *pRspUserLogin_OnRspUserLogin = NULL;
+	CThostFtdcRspInfoField *pRspInfo_OnRspUserLogin = NULL;
+
+	CThostFtdcUserLogoutField *pUserLogout_OnRspUserLogout;
+	CThostFtdcRspInfoField *pRspInfo_OnRspUserLogout;
+
+	char* pInfo = NULL;
 	int count = 0;
-	void PMsg(unsigned nThreadID, int msg);
+	void PMsg(unsigned nThreadID, int msg, LPVOID p1, LPVOID p2, int Reason);
 
 	virtual void OnFrontConnected();
 

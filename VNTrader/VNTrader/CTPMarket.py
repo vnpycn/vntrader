@@ -488,12 +488,12 @@ class CTPMarket(object):
     def RegisterNameServer(self, pszNsAddress):
         self.fRegisterNameServer(pszNsAddress.encode('gb2312'))
 
-    #行情回调
-    def OnRtnDepthMarketData(self, a):
+    # 建立连接回调
+    def OnFrontConnected(self):
         pass
 
-    #合约订阅回调
-    def OnRspSubMarketData(self, a):
+    # 断开连接回调
+    def OnFrontDisconnected(self, a):
         pass
 
     #登录回调
@@ -504,18 +504,23 @@ class CTPMarket(object):
     def OnRspUserLogout(self, a):
         pass
 
-    # 建立连接回调
-    def OnFrontConnected(self):
+    # 行情回调
+    def OnRtnDepthMarketData(self, a):
         pass
 
-    # 断开连接回调
-    def OnFrontDisconnected(self, a):
+    # 合约订阅回调
+    def OnRspSubMarketData(self, a):
         pass
 
-    # 注册行情回调
-    def VNRegOnRtnDepthMarketData(self):
-        CMPFUNC = CFUNCTYPE(None, POINTER(VNDepMarketData), c_void_p)
-        self.vnmd.VNRegOnRtnDepthMarketData(CMPFUNC(self.OnRtnDepthMarketData))
+    # 注册Python的OnFrontConnected回调函数指针，对应CTP c++的OnFrontConnected方法
+    def VNRegOnFrontConnected(self):
+        CMPFUNC = CFUNCTYPE(None)
+        self.vnmd.VNRegOnFrontConnected(CMPFUNC(self.OnFrontConnected))
+
+    # 注册Python的OnFrontDisconnected回调函数指针，对应CTP c++的OnFrontDisconnected方法
+    def VNRegOnFrontDisconnected(self):
+        CMPFUNC = CFUNCTYPE(None, c_void_p)
+        self.vnmd.VNRegOnFrontDisconnected(CMPFUNC(self.OnFrontDisconnected))
 
     # 注册Python的OnRspUserLogin回调函数指针，对应CTP c++的OnRspUserLogin方法
     def VNRegOnRspUserLogin(self):
@@ -532,15 +537,10 @@ class CTPMarket(object):
         CMPFUNC = CFUNCTYPE(None, POINTER(VNDepMarketData))
         self.vnmd.VNRegOnRspSubMarketData(CMPFUNC(self.OnRspSubMarketData))
 
-    # 注册Python的OnFrontConnected回调函数指针，对应CTP c++的OnFrontConnected方法
-    def VNRegOnFrontConnected(self):
-        CMPFUNC = CFUNCTYPE(None)
-        self.vnmd.VNRegOnFrontConnected(CMPFUNC(self.OnFrontConnected))
-
-    # 注册Python的OnFrontDisconnected回调函数指针，对应CTP c++的OnFrontDisconnected方法
-    def VNRegOnFrontDisconnected(self):
-        CMPFUNC = CFUNCTYPE(None, c_void_p)
-        self.vnmd.VNRegOnFrontDisconnected(CMPFUNC(self.OnFrontDisconnected))
+    # 注册行情回调
+    def VNRegOnRtnDepthMarketData(self):
+        CMPFUNC = CFUNCTYPE(None, POINTER(VNDepMarketData), c_void_p)
+        self.vnmd.VNRegOnRtnDepthMarketData(CMPFUNC(self.OnRtnDepthMarketData))
 
     def InitMD(self):
         return self.fInitMD()
