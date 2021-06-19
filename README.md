@@ -1,4 +1,4 @@
-# VNPY官方 VNTrader
+# VNPY官方 VNTrader （基于期货CTP接口专用量化交易开源软件）
 
 #### 介绍
 VNTrader是VNPY官方 http://www.vnpy.cn 推出的一款国内期货量化交易开源软件，
