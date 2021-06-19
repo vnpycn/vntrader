@@ -42,12 +42,12 @@ http://www.simnow.com.cn
 ![Image text](https://raw.githubusercontent.com/vnpycn/vntrader/master/pic/VNTrader.png)
 
 第1步设置
+![Image text](https://raw.githubusercontent.com/vnpycn/vntrader/master/pic/step1.png)
 
 
 第2步设置
-![Image text]()
+![Image text](https://raw.githubusercontent.com/vnpycn/vntrader/master/pic/step2.png)
 
-![Image text]()
 #### 软件架构
 软件架构说明
 Python3.0 + PYQT
