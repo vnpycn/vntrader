@@ -36,7 +36,7 @@ http://www.simnow.com.cn
 
 抛弃历史曾出现的大杂烩版本，专门面向国内商品期货、股指期货实现程序化交易CTP接口的专属版本，符合“精简、高性能、精细化回测、功能强大、入门更容易”等特点。
 
-![Image text]( 
+![Image text](https://raw.githubusercontent.com/vnpycn/vntrader/master/pic/VNTrader.png)
 
 
 第2步设置
