@@ -848,9 +848,11 @@ class Ui_MainWindow(object):
         self.table_position.verticalHeader().setVisible(False)  # 隐藏垂直表头
         self.table_position.horizontalHeader().setVisible(True)  # 隐藏水平表头
         self.table_position.setEditTriggers(self.table_position.NoEditTriggers)
+        self.table_position.setSelectionBehavior(self.table_position.SelectRows)
+
         self.table_position.setColumnCount(7)
-        self.table_position.setRowCount(1)
-        self.table_position.setHorizontalHeaderLabels(['合约', '买卖', '总持仓', '可平量', '持仓均价', '持仓盈亏', '占用保证金'])  # 设置表头文字
+        self.table_position.setRowCount(0)
+        self.table_position.setHorizontalHeaderLabels(['合约', '买卖', '总持仓', '可平量', '持仓成本', '持仓盈亏', '占用保证金'])  # 设置表头文字
         # 设置行高
         self.table_position.setRowHeight(0, 35)
         self.table_position.setSortingEnabled(True)  # 设置表头可以自动排序
@@ -865,13 +867,15 @@ class Ui_MainWindow(object):
         comBox.setStyleSheet('QComboBox{margin:3px}')
         self.table_position.setCellWidget(0,1,comBox)
         """
+        '''
+        
         Trade_CancelBtn = QtWidgets.QPushButton('双击人工平仓')
         Trade_CancelBtn.setFlat(True)
         Trade_CancelBtn.setStyleSheet('background-color:#ff0000;');
         # searchBtn.setDown(True)
         Trade_CancelBtn.setStyleSheet('QPushButton{margin:3px}')
         self.table_position.setCellWidget(0, 6, Trade_CancelBtn)
-
+        '''
         self.gridLayout_5.addWidget(self.table_position, 1, 1, 1, 1)
 
         self.toolBox1.addItem(self.page_trade, "")
@@ -1518,12 +1522,8 @@ class Ui_MainWindow(object):
         self.gridLayout_3.setContentsMargins(0, 0, 0, 0)
         self.gridLayout_3.setObjectName("gridLayout_3")
         # 左边行情滚动位置
-        '''
-        self.verticalSlider = QtWidgets.QSlider(self.dockWidgetContents_2)
-        self.verticalSlider.setOrientation(QtCore.Qt.Vertical)
-        self.verticalSlider.setObjectName("verticalSlider")
-        self.gridLayout_3.addWidget(self.verticalSlider, 0, 0, 1, 1)
-        '''
+
+
         self.dockWidget2.setWidget(self.dockWidgetContents_2)
         MainWindow.addDockWidget(QtCore.Qt.DockWidgetArea(1), self.dockWidget2)
 

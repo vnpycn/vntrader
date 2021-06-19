@@ -14,7 +14,7 @@ print(sys.path)
 import qdarkstyle
 import ui.example_pyqt5_ui as example_ui
 from PyQt5.QtGui import QIcon
-
+from PyQt5.QtWidgets import *
 # CTP行情库
 from CTPMarket import *
 # CTP交易库
@@ -69,22 +69,23 @@ class MyCTPTrade(CTPTrader):
     # 请求查询投资者持仓响应
     def OnRspQryInvestorPosition(self, a):
         print("请求查询投资者持仓响应OnRspQryInvestorPosition")
-        log_todaytd('请求查询投资者持仓响应OnRspQryInvestorPosition')
+        #print(a.contents.Position, a.contents.CashIn , a.contents.InstrumentID )
+        update_position(a)
 
     # 账户资金回调
     def OnRspQryTradingAccount(self, a):
         print("账户资金回调OnRspQryTradingAccount")
-
-
-        #update_OnRspQryTradingAccount('账户资金回调OnRspQryTradingAccount')
+        #update_account('账户资金回调OnRspQryTradingAccount')
 
     # 委托回报
     def OnRtnOrder(self, a):
-        log_todaytd('委托回报OnRtnOrder')
+        print("委托回报OnRtnOrder")
+        update_order(a)
 
     # 成交回报
     def OnRtnTrade(self, a):
-        log_todaytd('成交回报OnRtnTrade')
+        print("成交回报OnRtnTrade")
+        update_trader(a)
 
 # MyCTPMarket类继承自CTPMarket类
 class MyCTPMarket(CTPMarket):
@@ -230,8 +231,138 @@ class RegMdThreadOnRtnDepthMarketData(Thread):
     def run(self):
         self.md.VNRegOnRtnDepthMarketData()
 
+dict_position = {}
+dict_order = {}
+dict_trader = {}
+def update_order(a):
+    row_cnt = ui.table_order.rowCount()
+    thiskey = str(a.contents.InstrumentID)
+    if a.contents.InstrumentID is '':
+        return
+    if thiskey in dict_order:
+        thisrowid = row_cnt
+        pass
+    else:
+        print("y: " + thiskey)
+        dict_order[thiskey] = row_cnt
+        ui.table_order.insertRow(row_cnt)  # 尾部插入一行新行表格
+        thisrowid = row_cnt
 
-def update_OnRspQryTradingAccount(mystr):
+    column_cnt = ui.table_order.columnCount()  # 返回当前列数
+    item = QTableWidgetItem(str(a.contents.InstrumentID, encoding="utf-8"))
+    ui.table_order.setItem(thisrowid, 0, item)
+    if a.contents.PosiDirection is '0':
+        item = QTableWidgetItem('买')
+    else:
+        item = QTableWidgetItem('卖')
+    ui.table_order.setItem(thisrowid, 1, item)
+    item = QTableWidgetItem(str(a.contents.Position))
+    ui.table_order.setItem(thisrowid, 2, item)
+    item = QTableWidgetItem(str(a.contents.CloseVolume))  # 平仓量
+    ui.table_order.setItem(thisrowid, 3, item)
+    item = QTableWidgetItem(str(a.contents.UseMargin))  # 保证金
+    ui.table_order.setItem(thisrowid, 4, item)
+    item = QTableWidgetItem(str(a.contents.PositionCost))  # 持仓成本
+    ui.table_order.setItem(thisrowid, 5, item)
+    item = QTableWidgetItem(str(a.contents.PositionProfit))  # 持仓盈亏
+
+    '''
+    ui.Trade_CancelBtn  = QtWidgets.QPushButton('双击人工平仓')
+    ui.Trade_CancelBtn.setFlat(True)
+    ui.Trade_CancelBtn.setStyleSheet('background-color:#ff0000;');
+    # searchBtn.setDown(True)
+    ui.Trade_CancelBtn.setStyleSheet('QPushButton{margin:3px}')
+    ui.table_order.setCellWidget(thisrowid, 6, ui.Trade_CancelBtn)
+    '''
+
+
+def update_trader(a):
+    row_cnt = ui.table_trader.rowCount()
+    thiskey = str(a.contents.InstrumentID)
+    if a.contents.InstrumentID is '':
+        return
+    if thiskey in dict_trader:
+        thisrowid = row_cnt
+        pass
+    else:
+        print("y: " + thiskey)
+        dict_trader[thiskey] = row_cnt
+        ui.table_trader.insertRow(row_cnt)  # 尾部插入一行新行表格
+        thisrowid = row_cnt
+
+    column_cnt = ui.table_trader.columnCount()  # 返回当前列数
+    item = QTableWidgetItem(str(a.contents.InstrumentID, encoding="utf-8"))
+    ui.table_trader.setItem(thisrowid, 0, item)
+    if a.contents.PosiDirection is '0':
+        item = QTableWidgetItem('买')
+    else:
+        item = QTableWidgetItem('卖')
+    ui.table_trader.setItem(thisrowid, 1, item)
+    item = QTableWidgetItem(str(a.contents.Position))
+    ui.table_trader.setItem(thisrowid, 2, item)
+    item = QTableWidgetItem(str(a.contents.CloseVolume))  # 平仓量
+    ui.table_trader.setItem(thisrowid, 3, item)
+    item = QTableWidgetItem(str(a.contents.UseMargin))  # 保证金
+    ui.table_trader.setItem(thisrowid, 4, item)
+    item = QTableWidgetItem(str(a.contents.PositionCost))  # 持仓成本
+    ui.table_trader.setItem(thisrowid, 5, item)
+    item = QTableWidgetItem(str(a.contents.PositionProfit))  # 持仓盈亏
+
+    '''
+    ui.Trade_CancelBtn  = QtWidgets.QPushButton('双击人工平仓')
+    ui.Trade_CancelBtn.setFlat(True)
+    ui.Trade_CancelBtn.setStyleSheet('background-color:#ff0000;');
+    # searchBtn.setDown(True)
+    ui.Trade_CancelBtn.setStyleSheet('QPushButton{margin:3px}')
+    ui.table_trader.setCellWidget(thisrowid, 6, ui.Trade_CancelBtn)
+    '''
+
+
+
+def update_position(a):
+    row_cnt = ui.table_position.rowCount()
+    thiskey=str(a.contents.InstrumentID)
+    if a.contents.InstrumentID is '':
+        return
+    if thiskey in dict_position:
+        thisrowid=row_cnt
+        pass
+    else:
+        print("y: " + thiskey)
+        dict_position[thiskey] = row_cnt
+        ui.table_position.insertRow(row_cnt)  # 尾部插入一行新行表格
+        thisrowid=row_cnt
+
+
+    column_cnt = ui.table_position.columnCount()  # 返回当前列数
+    item = QTableWidgetItem(str(a.contents.InstrumentID, encoding="utf-8"))
+    ui.table_position.setItem(thisrowid, 0, item)
+    if a.contents.PosiDirection is '0':
+        item = QTableWidgetItem('买')
+    else:
+        item = QTableWidgetItem('卖')
+    ui.table_position.setItem(thisrowid, 1, item)
+    item = QTableWidgetItem(str(a.contents.Position))
+    ui.table_position.setItem(thisrowid, 2, item)
+    item = QTableWidgetItem(str(a.contents.CloseVolume))      #平仓量
+    ui.table_position.setItem(thisrowid, 3, item)
+    item = QTableWidgetItem(str(a.contents.UseMargin))      #保证金
+    ui.table_position.setItem(thisrowid, 4, item)
+    item = QTableWidgetItem(str(a.contents.PositionCost))    #持仓成本
+    ui.table_position.setItem(thisrowid, 5, item)
+    item = QTableWidgetItem(str(a.contents.PositionProfit))  #持仓盈亏
+
+    '''
+    ui.Trade_CancelBtn  = QtWidgets.QPushButton('双击人工平仓')
+    ui.Trade_CancelBtn.setFlat(True)
+    ui.Trade_CancelBtn.setStyleSheet('background-color:#ff0000;');
+    # searchBtn.setDown(True)
+    ui.Trade_CancelBtn.setStyleSheet('QPushButton{margin:3px}')
+    ui.table_position.setCellWidget(thisrowid, 6, ui.Trade_CancelBtn)
+    '''
+
+
+def update_account(mystr):
     '''
     _translate = QtCore.QCoreApplication.translate
     item = QtWidgets.QListWidgetItem()
@@ -240,6 +371,7 @@ def update_OnRspQryTradingAccount(mystr):
     tstr = time.strftime("%Y-%m-%d %H:%M:%S ", time.localtime())
     item.setText(_translate("MainWindow", tstr + mystr))
     '''
+
     print(mystr.contents.TradingDay, mystr.contents.Available)
     pass
 

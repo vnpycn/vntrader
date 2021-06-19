@@ -1,6 +1,60 @@
 ﻿# -*- coding=utf-8 -*-
 from ctypes import *
 
+class VNDEFInvestorPosition(Structure):
+    _fields_ = [
+        ('InstrumentID', c_char * 31),  # 合约代码
+        ('BrokerID', c_char * 11),  # 经纪公司代码
+        ('InvestorID', c_char * 13),  # 投资者代码
+        ('PosiDirection', c_char),  # 持仓多空方向
+        ('HedgeFlag', c_char),  # 投机套保标志
+        ('PositionDate', c_char),  # 持仓日期
+        ('YdPosition', c_int32),  # 上日持仓
+        ('Position', c_int32) ,   # 今日持仓
+        ('LongFrozen', c_int32),   # 多头冻结
+        ('ShortFrozen', c_int32),  # 空头冻结
+        ('LongFrozenAmount', c_double),  # 开仓冻结金额
+        ('ShortFrozenAmount', c_double),  # 开仓冻结金额
+        ('OpenVolume', c_int32),   # 开仓量
+        ('CloseVolume', c_int32),  # 平仓量
+        ('OpenAmount', c_double),  # 开仓金额
+        ('CloseAmount', c_double),  # 平仓金额
+        ('PositionCost', c_double),  # 持仓成本
+        ('PreMargin', c_double),  # 上次占用的保证金
+        ('UseMargin', c_double),  # 占用的保证金
+        ('FrozenMargin', c_double),  # 冻结的保证金
+        ('FrozenCash', c_double),  # 冻结的资金
+        ('FrozenCommission', c_double),  # 冻结的手续费
+        ('CashIn', c_double),  # 资金差额
+        ('Commission', c_double),  # 手续费
+        ('CloseProfit', c_double),  # 平仓盈亏
+        ('PositionProfit', c_double),  # 持仓盈亏
+        ('PreSettlementPrice', c_double),  # 上次结算价
+        ('SettlementPrice', c_double),  # 本次结算价
+        ('TradingDay', c_char * 9),  # 本次结算价
+        ('SettlementID',c_int32),  # 结算编号
+        ('OpenCost', c_double),  # 开仓成本
+        ('ExchangeMargin', c_double),  # 交易所保证金
+        ('CombPosition', c_int32),  # 组合成交形成的持仓
+        ('CombLongFrozen', c_int32),  # 组合多头冻结
+        ('CombShortFrozen', c_int32),  # 组合空头冻结
+        ('CloseProfitByDate', c_double),  # 逐日盯市平仓盈亏
+        ('CloseProfitByTrade', c_double),  # 逐笔对冲平仓盈亏
+        ('TodayPosition', c_int32),  # 今日持仓
+        ('MarginRateByMoney', c_double),  # 保证金率
+        ('MarginRateByVolume', c_double),  # 保证金率(按手数)
+        ('StrikeFrozen', c_int32),  # 执行冻结
+        ('StrikeFrozenAmount', c_double),  # 执行冻结金额
+        ('AbandonFrozen', c_int32),  # 放弃执行冻结
+        ('ExchangeID',  c_char * 9),  # 交易所代码
+        ('YdStrikeFrozen', c_int32),  # 执行冻结的昨仓
+        ('InvestUnitID', c_char * 17),  # 投资单元代码
+        ('PositionCostOffset', c_double),  # 大商所持仓成本差值，只有大商所使用
+        ('TasPosition', c_int32),  # tas持仓手数
+        ('TasPositionCost', c_double)  # tas持仓成本
+    ]
+    pass
+
 
 class VNDEFTradingAccountField(Structure):
     _fields_ = [('BrokerID', c_char * 11),  # 经纪公司代码

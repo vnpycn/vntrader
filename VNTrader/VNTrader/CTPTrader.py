@@ -184,7 +184,7 @@ class CTPTrader(object):
 
     # 注册Python的OnRspQryInvestorPosition回调函数指针，对应CTP c++的OnRspQryInvestorPosition方法
     def VNRegOnRspQryInvestorPosition(self):
-        CMPFUNC = CFUNCTYPE(None, c_void_p)
+        CMPFUNC = CFUNCTYPE(None, POINTER(VNDEFInvestorPosition))
         self.vntd.VNRegOnRspQryInvestorPosition(CMPFUNC(self.OnRspQryInvestorPosition))
 
     # 注册Python的OnRspQryTradingAccount回调函数指针，对应CTP c++的OnRspQryTradingAccount方法
@@ -194,12 +194,12 @@ class CTPTrader(object):
 
     # 注册Python的OnRtnOrder回调函数指针，对应CTP c++的OnRtnOrder方法
     def VNRegOnRtnOrder(self):
-        CMPFUNC = CFUNCTYPE(None, c_void_p)
+        CMPFUNC = CFUNCTYPE(None, POINTER(VNCThostFtdcOrderField))
         self.vntd.VNRegOnRtnOrder(CMPFUNC(self.OnRtnOrder))
 
     # 注册Python的OnRtnOrder回调函数指针，对应CTP c++的OnRtnOrder方法
     def VNRegOnRtnTrade(self):
-        CMPFUNC = CFUNCTYPE(None, c_void_p)
+        CMPFUNC = CFUNCTYPE(None, POINTER(VNCThostFtdcOrderField))
         self.vntd.VNRegOnRtnTrade(CMPFUNC(self.OnRtnTrade))
 
     def InitTD(self):
