@@ -1,4 +1,4 @@
-# VNTrader
+# VNPY官方 VNTrader
 
 #### 介绍
 VNTrader是VNPY官方 http://www.vnpy.cn 推出的一款国内期货量化交易开源软件，
